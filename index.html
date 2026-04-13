@@ -10,473 +10,423 @@
 <style>
 :root {
   --ink: #0F172A;
-  --bg: #F8FAFC;
+  --bg: #F1F5F9;
   --card: #FFFFFF;
-  --card2: #F1F5F9;
+  --card2: #F8FAFC;
   --border: #E2E8F0;
   --muted: #64748B;
   --blue: #1A3BFF;
   --blue2: #4A6CFF;
-  --green: #00D97E;
-  --red: #FF4444;
-  --amber: #FFB020;
-  --glow: rgba(26,59,255,.25);
-  --nav-h: 68px;
+  --green: #10B981;
+  --green2: #059669;
+  --red: #EF4444;
+  --glow: rgba(26,59,255,.2);
+  --nav-h: 64px;
+  /* Mobile panel heights */
+  --panel-expanded: 370px;
+  --panel-collapsed: 70px;
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:var(--ink); }
-/* ── INIT LOADER ────────────────────────────────── */
-.init-loader {
-  position:fixed; inset:0; background:var(--bg); z-index:9999;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  transition:opacity .4s;
-}
+
+/* ── INIT LOADER ── */
+.init-loader { position:fixed; inset:0; background:var(--card); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
 .init-loader.hide { opacity:0; pointer-events:none; }
-.loader-ring {
-  width:48px; height:48px; border:4px solid var(--border);
-  border-top-color:var(--blue); border-radius:50%;
-  animation:spin .8s linear infinite; margin-bottom:16px;
-}
+.loader-ring { width:44px; height:44px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; margin-bottom:14px; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.loader-brand { font-size:17px; font-weight:800; color:var(--blue); letter-spacing:-.3px; }
-.loader-sub { font-size:12px; color:var(--muted); margin-top:4px; font-weight:500; }
-/* ── SHEET HANDLE ───────────────────────────────── */
-.sheet-handle {
-  width:40px; height:5px; background:var(--border); border-radius:10px;
-  margin: 0 auto 16px auto; flex-shrink: 0;
-}
-/* ── SHELL ──────────────────────────────────────── */
-.shell { display:flex; height:100vh; width:100vw; overflow:hidden; }
-/* ── SIDEBAR ────────────────────────────────────── */
-.sidebar {
-  display:none; width:76px; background:var(--card);
-  border-right:1px solid var(--border);
-  flex-direction:column; padding:24px 12px; z-index:60; flex-shrink:0;
-  transition:width .3s cubic-bezier(.4,0,.2,1), padding .3s cubic-bezier(.4,0,.2,1);
-  overflow:hidden; white-space:nowrap;
-}
+.loader-brand { font-size:16px; font-weight:800; color:var(--blue); }
+.loader-sub { font-size:11px; color:var(--muted); margin-top:3px; font-weight:500; }
+
+/* ── SHELL ── */
+.shell { display:flex; height:100dvh; width:100vw; overflow:hidden; }
+
+/* ── SIDEBAR (desktop) ── */
+.sidebar { display:none; width:74px; background:var(--card); border-right:1px solid var(--border); flex-direction:column; padding:22px 11px; z-index:60; flex-shrink:0; transition:width .28s cubic-bezier(.4,0,.2,1), padding .28s cubic-bezier(.4,0,.2,1); overflow:hidden; white-space:nowrap; }
 @media(min-width:900px){ .sidebar { display:flex; } }
-.sidebar:hover { width:260px; padding:24px 18px; box-shadow:4px 0 30px rgba(0,0,0,.1); }
-.s-logo {
-  display:flex; align-items:center; gap:12px; margin-bottom:32px; padding-left:4px; min-width:220px;
-}
-.s-logo-mark {
-  width:38px; height:38px; background:var(--blue); border-radius:11px; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; font-weight:900; color:#fff;
-  box-shadow:0 4px 14px var(--glow);
-}
-.s-logo-txt { opacity:0; transition:opacity .15s .08s; font-size:16px; font-weight:900; color:var(--ink); letter-spacing:-.3px; }
+.sidebar:hover { width:252px; padding:22px 17px; box-shadow:4px 0 24px rgba(0,0,0,.08); }
+.s-logo { display:flex; align-items:center; gap:11px; margin-bottom:28px; padding-left:3px; min-width:214px; }
+.s-logo-mark { width:36px; height:36px; background:var(--blue); border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:#fff; box-shadow:0 3px 12px var(--glow); }
+.s-logo-txt { opacity:0; transition:opacity .14s .06s; font-size:15px; font-weight:900; color:var(--ink); letter-spacing:-.3px; }
 .sidebar:hover .s-logo-txt { opacity:1; }
-.s-logo-badge { opacity:0; transition:opacity .15s .1s; font-size:10px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:2px 8px; border-radius:10px; }
+.s-logo-badge { opacity:0; transition:opacity .14s .08s; font-size:10px; font-weight:700; background:rgba(16,185,129,.12); color:var(--green2); padding:2px 7px; border-radius:8px; margin-left:2px; }
 .sidebar:hover .s-logo-badge { opacity:1; }
-.snl {
-  display:flex; align-items:center; gap:14px; padding:12px 10px;
-  border-radius:11px; color:var(--muted); cursor:pointer; transition:.15s;
-  margin-bottom:3px; min-width:224px;
-}
-.snl svg { flex-shrink:0; width:20px; height:20px; }
-.snl:hover { background:rgba(0,0,0,.05); color:var(--ink); }
-.snl.act { background:rgba(26,59,255,.15); color:var(--blue2); }
-.s-ntxt { opacity:0; transition:opacity .15s .08s; font-size:14px; font-weight:600; }
+.snl { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:10px; color:var(--muted); cursor:pointer; transition:.14s; margin-bottom:2px; min-width:218px; }
+.snl svg { flex-shrink:0; width:19px; height:19px; }
+.snl:hover { background:rgba(0,0,0,.04); color:var(--ink); }
+.snl.act { background:rgba(26,59,255,.1); color:var(--blue); }
+.s-ntxt { opacity:0; transition:opacity .14s .06s; font-size:13px; font-weight:600; }
 .sidebar:hover .s-ntxt { opacity:1; }
-.s-badge {
-  opacity:0; transition:opacity .15s .1s; margin-left:auto;
-  background:var(--red); color:#fff; font-size:10px; font-weight:800;
-  padding:2px 7px; border-radius:20px; min-width:20px; text-align:center;
-}
+.s-badge { opacity:0; transition:opacity .14s .08s; margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:20px; min-width:18px; text-align:center; }
 .sidebar:hover .s-badge { opacity:1; }
 .s-spacer { flex:1; }
-.s-status-row {
-  display:flex; align-items:center; gap:12px; padding:10px 10px;
-  background:rgba(0,217,126,.08); border:1px solid rgba(0,217,126,.18);
-  border-radius:11px; margin-bottom:10px; cursor:pointer; min-width:224px; transition:.2s;
-}
-.s-status-row:hover { background:rgba(0,217,126,.14); }
-.s-status-dot { width:9px; height:9px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 2s ease-in-out infinite; }
+.s-status-row { display:flex; align-items:center; gap:11px; padding:10px; background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.2); border-radius:10px; margin-bottom:10px; cursor:pointer; min-width:218px; transition:.18s; }
+.s-status-row:hover { background:rgba(16,185,129,.13); }
+.s-status-row.off { background:rgba(0,0,0,.04); border-color:var(--border); }
+.s-status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 2s ease-in-out infinite; }
 .s-status-dot.off { background:var(--muted); animation:none; }
-@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(0,217,126,.5)} 50%{box-shadow:0 0 0 5px rgba(0,217,126,0)} }
-.s-status-txt { opacity:0; transition:opacity .15s .08s; font-size:13px; font-weight:700; color:var(--green); }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)} 50%{box-shadow:0 0 0 5px rgba(16,185,129,0)} }
+.s-status-txt { opacity:0; transition:opacity .14s .06s; font-size:12px; font-weight:700; color:var(--green2); }
 .s-status-row.off .s-status-txt { color:var(--muted); }
 .sidebar:hover .s-status-txt { opacity:1; }
-.s-user {
-  display:flex; align-items:center; gap:12px; padding:10px;
-  background:rgba(0,0,0,.04); border-radius:11px; min-width:224px; cursor:pointer; transition:.15s;
-}
-.s-user:hover { background:rgba(0,0,0,.07); }
-.s-av { width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
-.s-user-info { opacity:0; transition:opacity .15s .08s; overflow:hidden; }
+.s-user { display:flex; align-items:center; gap:11px; padding:9px; background:rgba(0,0,0,.03); border-radius:10px; min-width:218px; cursor:pointer; transition:.14s; }
+.s-user:hover { background:rgba(0,0,0,.06); }
+.s-av { width:32px; height:32px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0; }
+.s-user-info { opacity:0; transition:opacity .14s .06s; overflow:hidden; }
 .sidebar:hover .s-user-info { opacity:1; }
-.s-uname { font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
-.s-uemail { font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; margin-top:1px; }
-/* ── MAIN ───────────────────────────────────────── */
-.main { flex:1; height:100vh; overflow:hidden; position:relative; display:flex; flex-direction:column; }
-/* ── TOP BAR (mobile) ───────────────────────────── */
-.topbar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px 0; flex-shrink:0;
-}
+.s-uname { font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:146px; }
+.s-uemail { font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:146px; margin-top:1px; }
+
+/* ── MAIN ── */
+.main { flex:1; height:100dvh; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+
+/* ── MOBILE TOP BAR ── */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; background:var(--card); border-bottom:1px solid var(--border); flex-shrink:0; z-index:30; }
 @media(min-width:900px){ .topbar { display:none; } }
-.tb-logo { display:flex; align-items:center; gap:10px; }
-.tb-mark { width:34px; height:34px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; }
-.tb-name { font-size:15px; font-weight:800; color:var(--ink); }
-.tb-badge { font-size:9px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:2px 7px; border-radius:8px; margin-left:4px; }
-.tb-right { display:flex; align-items:center; gap:10px; }
-.tb-av { width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
-.online-toggle {
-  display:flex; align-items:center; gap:7px;
-  background:rgba(0,0,0,.1); border:1px solid var(--border);
-  padding:7px 14px; border-radius:20px; cursor:pointer; transition:.2s;
-  touch-action: manipulation;
-}
-.online-toggle.on { background:rgba(0,217,126,.12); border-color:rgba(0,217,126,.3); }
-.ot-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.tb-logo { display:flex; align-items:center; gap:9px; }
+.tb-mark { width:32px; height:32px; background:var(--blue); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; }
+.tb-name { font-size:14px; font-weight:800; color:var(--ink); }
+.tb-badge { font-size:8px; font-weight:700; background:rgba(16,185,129,.12); color:var(--green2); padding:2px 6px; border-radius:7px; margin-left:3px; }
+.tb-right { display:flex; align-items:center; gap:8px; }
+.tb-av { width:32px; height:32px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; cursor:pointer; }
+.online-toggle { display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:20px; cursor:pointer; transition:.18s; background:var(--bg); border:1.5px solid var(--border); touch-action:manipulation; }
+.online-toggle.on { background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.35); }
+.ot-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; transition:background .2s; }
 .online-toggle.on .ot-dot { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
-.ot-lbl { font-size:12px; font-weight:700; color:var(--muted); }
-.online-toggle.on .ot-lbl { color:var(--green); }
-/* ── PAGE CONTENT ───────────────────────────────── */
-.page { flex:1; overflow-y:auto; padding:20px 20px calc(var(--nav-h) + 360px + env(safe-area-inset-bottom,16px)); display:none; flex-direction:column; gap:16px; }
-@media(min-width:900px) { .page { padding:28px 32px 28px; } }
-.page.show { display:flex; }
-.page::-webkit-scrollbar { width:4px; }
-.page::-webkit-scrollbar-track { background:transparent; }
-.page::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-.ph { font-size:22px; font-weight:900; color:var(--ink); letter-spacing:-.4px; flex-shrink:0; }
-.ph-sub { font-size:13px; color:var(--muted); margin-top:3px; font-weight:500; }
-/* ── MAP PAGE ───────────────────────────────────── */
-#page-map { padding:0; position:relative; overflow:hidden; }
-#driverMap { width:100%; height:100%; }
-/* ── PERSISTENT OVERLAY PANEL (BOTTOM SHEET) ────── */
-.map-overlay-panel {
-  position:fixed; left:0; right:0; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
-  border-top:1px solid var(--border); padding:16px 20px 22px;
-  z-index:40; display:none; flex-direction:column; gap:14px;
-  border-radius: 28px 28px 0 0;
-  box-shadow: 0 -10px 40px rgba(0,0,0,.15);
-  animation: sheetUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  transition: left .3s cubic-bezier(.4,0,.2,1);
+.ot-lbl { font-size:11px; font-weight:700; color:var(--muted); }
+.online-toggle.on .ot-lbl { color:var(--green2); }
+
+/* ── MAP PAGE: fills remaining height, map + panel stacked (mobile) or side-by-side (desktop) ── */
+.map-page { flex:1; display:none; flex-direction:column; overflow:hidden; min-height:0; }
+.map-page.show { display:flex; }
+
+/* On desktop: row layout */
+@media(min-width:900px){
+  .map-page { flex-direction:row; }
 }
-.map-overlay-panel.show-panel {
-  display: flex;
+
+/* Map fills available space */
+.map-wrap { flex:1; position:relative; overflow:hidden; min-height:0; min-width:0; }
+#driverMap { position:absolute; inset:0; width:100%; height:100%; }
+
+/* ── DRIVER PANEL ── */
+/* Mobile: fixed height at bottom of map-page, no overlap */
+.driver-panel {
+  background:var(--card);
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-top:1px solid var(--border);
+  border-radius:18px 18px 0 0;
+  box-shadow:0 -3px 20px rgba(0,0,0,.07);
 }
-.map-panel-close {
-  position:absolute; top:18px; right:20px;
-  width:36px; height:36px; background:var(--card2); border:1px solid var(--border);
-  border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:22px; color:var(--muted); cursor:pointer; z-index:100;
-  box-shadow:0 3px 12px rgba(0,0,0,.08); transition:.2s;
-}
-.map-panel-close:hover { background:var(--border); color:var(--ink); }
-@media(min-width:900px) {
-  .map-overlay-panel {
-    left:98px; right:auto; bottom:22px; top:22px; width:370px;
-    border:1px solid var(--border); border-radius:18px; padding:24px;
-    box-shadow:0 20px 60px rgba(0,0,0,.12);
+@media(max-width:899px){
+  .driver-panel {
+    height:var(--panel-expanded);
+    transition:height .32s cubic-bezier(.4,0,.2,1);
+    /* reserve space for bottom nav */
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
   }
-  .map-overlay-panel .sheet-handle { display: none; }
-  .map-panel-close { top:16px; right:16px; }
+  .driver-panel.collapsed { height:var(--panel-collapsed); }
 }
-.sidebar:hover ~ .main .map-overlay-panel {
-  left: 282px;
+@media(min-width:900px){
+  .driver-panel {
+    width:356px;
+    height:100%;
+    border-top:none;
+    border-right:1px solid var(--border);
+    border-radius:0;
+    box-shadow:none;
+    order:-1; /* left side */
+  }
 }
-.status-hero {
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
+
+/* Handle row (mobile only) */
+.panel-handle { display:flex; align-items:center; justify-content:center; padding:8px 16px 4px; flex-shrink:0; cursor:pointer; position:relative; touch-action:manipulation; }
+@media(min-width:900px){ .panel-handle { display:none; } }
+.panel-drag-bar { width:36px; height:4px; background:var(--border); border-radius:4px; }
+.panel-toggle-btn {
+  position:absolute; right:16px; top:50%; transform:translateY(-50%);
+  display:flex; align-items:center; gap:4px;
+  font-size:10px; font-weight:700; color:var(--muted);
+  background:var(--bg); border:1px solid var(--border); border-radius:14px;
+  padding:3px 9px; cursor:pointer; touch-action:manipulation;
 }
-.sh-left { flex:1; }
-.sh-status-lbl { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
-.sh-status-val { font-size:20px; font-weight:900; color:var(--green); }
-.sh-status-val.off { color:var(--muted); }
-/* Toggle pill */
-.toggle-pill {
-  position:relative; width:68px; height:36px; cursor:pointer;
-  background:var(--border); border-radius:18px; transition:background .3s; flex-shrink:0;
-  border:none; outline:none; touch-action: manipulation;
-}
+
+/* Collapsed summary row (mobile only) */
+.panel-collapsed-row { display:none; align-items:center; justify-content:space-between; padding:0 16px 8px; flex-shrink:0; }
+.driver-panel.collapsed .panel-collapsed-row { display:flex; }
+.pcr-info { display:flex; align-items:center; gap:8px; }
+.pcr-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+.pcr-dot.on { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
+.pcr-label { font-size:13px; font-weight:700; color:var(--ink); }
+
+/* When collapsed hide the scroll content */
+.driver-panel.collapsed .panel-scroll { display:none; }
+
+/* Scrollable panel body */
+.panel-scroll { flex:1; overflow-y:auto; padding:10px 15px 10px; display:flex; flex-direction:column; gap:11px; -webkit-overflow-scrolling:touch; min-height:0; }
+@media(min-width:900px){ .panel-scroll { padding:18px 18px 18px; gap:13px; } }
+.panel-scroll::-webkit-scrollbar { width:3px; }
+.panel-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── STATUS HERO ── */
+.status-hero { display:flex; align-items:center; justify-content:space-between; background:var(--card2); border:1px solid var(--border); border-radius:13px; padding:13px 15px; flex-shrink:0; }
+.sh-lbl { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:2px; }
+.sh-val { font-size:17px; font-weight:900; color:var(--green); }
+.sh-val.off { color:var(--muted); }
+.toggle-pill { position:relative; width:60px; height:31px; cursor:pointer; background:var(--border); border-radius:15px; transition:background .26s; flex-shrink:0; border:none; outline:none; touch-action:manipulation; }
 .toggle-pill.on { background:var(--green); }
-.toggle-pill::after {
-  content:''; position:absolute; top:4px; left:4px;
-  width:28px; height:28px; border-radius:50%; background:#fff;
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 2px 8px rgba(0,0,0,.3);
-}
-.toggle-pill.on::after { transform:translateX(32px); }
-.stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.stat-card {
-  background:var(--card2); border:1px solid var(--border); border-radius:13px; padding:13px 14px;
-}
-.sc-lbl { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:5px; }
-.sc-val { font-size:20px; font-weight:900; color:var(--ink); }
-.sc-val span { font-size:11px; font-weight:600; color:var(--muted); margin-left:2px; }
-.ride-req-list { display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; }
-@media(min-width:900px) { .ride-req-list { max-height:none; flex:1; overflow-y:auto; } }
-.ride-req-list::-webkit-scrollbar { display:none; }
-.no-rides {
-  text-align:center; padding:24px 16px; color:var(--muted);
-  font-size:13px; font-weight:500;
-}
-.no-rides-ico { font-size:28px; margin-bottom:8px; }
-.req-card {
-  background:var(--card2); border:1.5px solid var(--border); border-radius:14px; padding:14px 15px;
-  transition:border-color .2s, box-shadow .2s;
-  animation:slideIn .3s cubic-bezier(.4,0,.2,1);
-}
-@keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.req-card:hover { border-color:var(--blue2); box-shadow:0 4px 20px rgba(26,59,255,.15); }
-.req-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.req-rider { display:flex; align-items:center; gap:10px; }
+.toggle-pill::after { content:''; position:absolute; top:3px; left:3px; width:25px; height:25px; border-radius:50%; background:#fff; transition:transform .26s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 7px rgba(0,0,0,.2); }
+.toggle-pill.on::after { transform:translateX(29px); }
+
+/* ── STAT GRID ── */
+.stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; flex-shrink:0; }
+.stat-card { background:var(--card2); border:1px solid var(--border); border-radius:11px; padding:10px 11px; }
+.sc-lbl { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:3px; }
+.sc-val { font-size:17px; font-weight:900; color:var(--ink); line-height:1; }
+.sc-val span { font-size:10px; font-weight:600; color:var(--muted); }
+
+/* ── RIDE REQUEST CARDS ── */
+.req-section-lbl { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; flex-shrink:0; }
+.ride-req-list { display:flex; flex-direction:column; gap:8px; }
+.no-rides { text-align:center; padding:18px 12px; color:var(--muted); font-size:12px; font-weight:500; }
+.no-rides-ico { font-size:24px; margin-bottom:6px; }
+
+.req-card { background:var(--card); border:1.5px solid var(--border); border-radius:13px; padding:13px; transition:border-color .18s; animation:slideIn .25s cubic-bezier(.4,0,.2,1); }
+@keyframes slideIn { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+.req-card:hover { border-color:rgba(26,59,255,.25); }
+
+.req-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:9px; gap:6px; }
+.req-rider { display:flex; align-items:center; gap:9px; flex:1; min-width:0; }
 .req-av { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0; }
-.req-name { font-size:14px; font-weight:700; color:var(--ink); }
-.req-type { font-size:11px; color:var(--muted); margin-top:1px; }
-.req-fare { font-size:18px; font-weight:900; color:var(--green); }
-.req-route { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
-.req-point { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:500; color:var(--ink); }
-.rp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.req-name { font-size:13px; font-weight:700; color:var(--ink); }
+.req-type-chip { font-size:9px; font-weight:700; background:rgba(26,59,255,.08); color:var(--blue); padding:2px 7px; border-radius:7px; margin-top:2px; display:inline-block; }
+.req-fare { font-size:17px; font-weight:900; color:var(--green2); flex-shrink:0; }
+.req-fare-lbl { font-size:9px; color:var(--muted); font-weight:600; text-align:right; }
+
+.req-divider { height:1px; background:var(--border); margin:9px 0; }
+
+.req-route { display:flex; flex-direction:column; gap:8px; margin-bottom:9px; }
+.req-point { display:flex; align-items:flex-start; gap:9px; }
+.rp-icon { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.rp-icon.pickup { background:rgba(16,185,129,.15); }
+.rp-icon.drop { background:rgba(26,59,255,.1); }
+.rp-dot { width:7px; height:7px; border-radius:50%; }
 .rp-dot.pickup { background:var(--green); }
 .rp-dot.drop { background:var(--blue2); }
-.req-meta { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.req-chip {
-  font-size:10px; font-weight:700; color:var(--muted);
-  background:rgba(0,0,0,.05); border:1px solid var(--border);
-  padding:3px 9px; border-radius:20px;
-}
-.req-btns { display:flex; gap:8px; }
-.btn-decline {
-  flex:1; padding:11px; border-radius:10px;
-  background:rgba(255,68,68,.08); border:1.5px solid rgba(255,68,68,.2);
-  color:var(--red); font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
-.btn-decline:hover { background:rgba(255,68,68,.15); }
-.btn-accept {
-  flex:2; padding:11px; border-radius:10px; border:none;
-  background:linear-gradient(130deg,var(--blue2),var(--blue));
-  color:#fff; font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s;
-  box-shadow:0 4px 14px var(--glow); touch-action:manipulation;
-}
-.btn-accept:hover { opacity:.9; transform:translateY(-1px); }
-.btn-accept:active { transform:translateY(0); }
-/* Active ride card */
-.active-ride-card {
-  background:linear-gradient(135deg,rgba(26,59,255,.18),rgba(74,108,255,.1));
-  border:1.5px solid rgba(74,108,255,.4); border-radius:16px; padding:18px;
-  display:none; flex-direction:column; gap:14px;
-}
+.rp-lbl { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+.rp-addr { font-size:11px; font-weight:600; color:var(--ink); line-height:1.3; margin-top:1px; }
+
+.req-meta { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.req-chip { font-size:9px; font-weight:600; color:var(--muted); background:var(--card2); border:1px solid var(--border); padding:2px 7px; border-radius:7px; }
+.req-btns { display:flex; gap:7px; }
+.btn-decline { flex:1; padding:10px; border-radius:9px; background:rgba(239,68,68,.07); border:1.5px solid rgba(239,68,68,.2); color:var(--red); font-size:12px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; touch-action:manipulation; }
+.btn-decline:active { background:rgba(239,68,68,.13); }
+.btn-accept { flex:2; padding:10px; border-radius:9px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; font-size:12px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; transition:.14s; box-shadow:0 3px 12px var(--glow); touch-action:manipulation; }
+.btn-accept:active { opacity:.88; }
+
+/* ── ACTIVE RIDE CARD ── */
+.active-ride-card { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1.5px solid rgba(26,59,255,.22); border-radius:13px; padding:14px; display:none; flex-direction:column; gap:11px; flex-shrink:0; }
 .active-ride-card.show { display:flex; }
 .ar-header { display:flex; justify-content:space-between; align-items:center; }
-.ar-status { font-size:11px; font-weight:700; color:var(--blue2); text-transform:uppercase; letter-spacing:.08em; }
-.ar-fare { font-size:24px; font-weight:900; color:var(--ink); }
-.ar-rider { display:flex; align-items:center; gap:12px; }
-.ar-av { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
-.ar-name { font-size:16px; font-weight:800; color:var(--ink); }
-.ar-dest { font-size:13px; color:var(--muted); margin-top:2px; }
-.ar-actions { display:flex; gap:8px; }
-.btn-complete {
-  flex:1; padding:13px; border-radius:11px; border:none;
-  background:var(--green); color:#0F172A;
-  font-size:14px; font-weight:800; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
-.btn-complete:hover { opacity:.9; }
-.btn-cancel-active {
-  padding:13px 16px; border-radius:11px;
-  background:rgba(255,68,68,.1); border:1.5px solid rgba(255,68,68,.25);
-  color:var(--red); font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
-/* ── EARNINGS PAGE ──────────────────────────────── */
-.earn-hero {
-  background:linear-gradient(135deg,#EFF6FF,#DBEAFE,#BFDBFE);
-  border-radius:20px; padding:24px 22px; position:relative; overflow:hidden;
-}
-.earn-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(26,59,255,.06); }
-.earn-hero::after { content:''; position:absolute; bottom:-50px; left:-20px; width:180px; height:180px; border-radius:50%; background:rgba(26,59,255,.04); }
-.eh-lbl { font-size:12px; color:rgba(15,23,42,.7); font-weight:600; margin-bottom:4px; }
-.eh-amount { font-size:42px; font-weight:900; color:var(--ink); letter-spacing:-.8px; margin-bottom:16px; position:relative; z-index:1; }
-.eh-stats { display:flex; gap:20px; position:relative; z-index:1; }
-.eh-stat { background:rgba(255,255,255,.85); border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
-.eh-stat-val { font-size:18px; font-weight:800; color:var(--ink); }
-.eh-stat-lbl { font-size:10px; color:var(--muted); margin-top:2px; font-weight:600; text-transform:uppercase; }
-.trip-hist-item {
-  background:var(--card); border:1px solid var(--border); border-radius:14px; padding:15px 16px;
-  display:flex; justify-content:space-between; align-items:flex-start; transition:.15s;
-}
-.trip-hist-item:hover { border-color:var(--border); background:var(--card2); }
-.th-type { font-size:14px; font-weight:700; color:var(--ink); }
-.th-dest { font-size:12px; color:var(--muted); margin-top:3px; }
-.th-date { font-size:11px; color:var(--muted); margin-top:5px; }
-.th-fare { font-size:16px; font-weight:800; color:var(--green); }
-.th-badge { font-size:10px; font-weight:700; color:var(--blue2); background:rgba(74,108,255,.12); padding:3px 9px; border-radius:20px; margin-top:5px; display:inline-block; }
-/* ── ACCOUNT PAGE ───────────────────────────────── */
-.prof-card {
-  background:linear-gradient(135deg,#F0F4FF,#E0EAFF,#D1E0FF);
-  border:1px solid rgba(74,108,255,.3); border-radius:20px; padding:22px 20px;
-  display:flex; align-items:center; gap:16px;
-  position:relative; overflow:hidden;
-}
-.prof-card::after { content:''; position:absolute; top:-30px; right:-30px; width:140px; height:140px; border-radius:50%; background:rgba(74,108,255,.08); }
-.pc-av { width:58px; height:58px; border-radius:16px; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; flex-shrink:0; box-shadow:0 4px 16px var(--glow); }
-.pc-name { font-size:19px; font-weight:800; color:var(--ink); }
-.pc-email { font-size:12px; color:var(--muted); margin-top:3px; }
-.pc-tag { font-size:10px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:3px 10px; border-radius:10px; margin-top:8px; display:inline-block; text-transform:uppercase; letter-spacing:.06em; }
-.acc-group-title { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin:4px 0 8px 2px; }
-.acc-group { background:var(--card); border-radius:16px; overflow:hidden; border:1px solid var(--border); }
-.acc-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px; border-bottom:1px solid var(--border);
-  cursor:pointer; transition:.15s; touch-action:manipulation;
-}
+.ar-badge { display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:700; color:var(--blue); background:rgba(26,59,255,.1); padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.06em; }
+.ar-badge-dot { width:5px; height:5px; border-radius:50%; background:var(--blue); animation:pulse-dot 1.5s ease-in-out infinite; }
+.ar-fare-big { font-size:21px; font-weight:900; color:var(--ink); }
+.ar-rider-row { display:flex; align-items:center; gap:10px; }
+.ar-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; }
+.ar-name { font-size:14px; font-weight:800; color:var(--ink); }
+.ar-dest-txt { font-size:11px; color:var(--muted); margin-top:2px; }
+.ar-cells { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+.ar-cell { background:rgba(255,255,255,.8); border:1px solid rgba(26,59,255,.1); border-radius:9px; padding:8px 9px; }
+.ar-cell-lbl { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+.ar-cell-val { font-size:14px; font-weight:900; color:var(--ink); line-height:1; }
+.ar-route-box { background:rgba(255,255,255,.7); border-radius:9px; padding:10px 11px; display:flex; flex-direction:column; gap:7px; }
+.ar-rp { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--ink); font-weight:500; }
+.ar-rp-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.ar-rp-dot.p { background:var(--green); }
+.ar-rp-dot.d { background:var(--blue2); }
+.ar-actions { display:flex; gap:7px; }
+.btn-complete { flex:1; padding:12px; border-radius:9px; border:none; background:linear-gradient(130deg,var(--green),var(--green2)); color:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 3px 12px rgba(16,185,129,.28); touch-action:manipulation; transition:.14s; }
+.btn-complete:active { opacity:.88; }
+.btn-cancel-active { padding:12px 13px; border-radius:9px; background:rgba(239,68,68,.07); border:1.5px solid rgba(239,68,68,.2); color:var(--red); font-size:11px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; touch-action:manipulation; transition:.14s; }
+.btn-cancel-active:active { background:rgba(239,68,68,.13); }
+
+/* ── PAGES ── */
+.page { flex:1; display:none; flex-direction:column; overflow-y:auto; padding:15px 16px calc(var(--nav-h) + env(safe-area-inset-bottom,12px)); gap:13px; -webkit-overflow-scrolling:touch; }
+.page.show { display:flex; }
+@media(min-width:900px){ .page { padding:22px 26px 22px; } }
+.page::-webkit-scrollbar { width:3px; }
+.page::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.ph { font-size:21px; font-weight:900; color:var(--ink); letter-spacing:-.4px; flex-shrink:0; }
+.ph-sub { font-size:11px; color:var(--muted); margin-top:2px; font-weight:500; }
+.section-title { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; flex-shrink:0; }
+
+/* Earnings */
+.earn-hero { background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6); border-radius:17px; padding:20px 18px; position:relative; overflow:hidden; flex-shrink:0; }
+.earn-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.07); }
+.eh-lbl { font-size:11px; color:rgba(255,255,255,.65); font-weight:600; margin-bottom:3px; }
+.eh-amount { font-size:36px; font-weight:900; color:#fff; letter-spacing:-.7px; margin-bottom:13px; position:relative; z-index:1; }
+.eh-stats { display:flex; gap:9px; position:relative; z-index:1; }
+.eh-stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:9px; padding:8px 12px; }
+.eh-stat-val { font-size:16px; font-weight:800; color:#fff; }
+.eh-stat-lbl { font-size:9px; color:rgba(255,255,255,.6); margin-top:1px; font-weight:600; text-transform:uppercase; }
+
+/* Trip history card */
+.trip-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:13px 13px; display:flex; justify-content:space-between; align-items:flex-start; transition:.14s; }
+.trip-card:hover { background:var(--card2); }
+.tc-type { font-size:13px; font-weight:700; color:var(--ink); }
+.tc-rider { font-size:11px; color:var(--blue); font-weight:600; margin-top:2px; }
+.tc-route { font-size:10px; color:var(--muted); margin-top:3px; line-height:1.4; }
+.tc-date { font-size:10px; color:var(--muted); margin-top:4px; }
+.tc-badge { font-size:9px; font-weight:700; color:var(--green2); background:rgba(16,185,129,.1); padding:2px 8px; border-radius:7px; margin-top:5px; display:inline-block; }
+.tc-fare { font-size:15px; font-weight:800; color:var(--green2); flex-shrink:0; padding-left:8px; }
+.tc-km { font-size:10px; color:var(--muted); text-align:right; margin-top:3px; }
+
+/* Account */
+.prof-card { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1px solid rgba(26,59,255,.2); border-radius:17px; padding:18px; display:flex; align-items:center; gap:13px; position:relative; overflow:hidden; flex-shrink:0; }
+.prof-card::after { content:''; position:absolute; top:-25px; right:-25px; width:110px; height:110px; border-radius:50%; background:rgba(26,59,255,.06); }
+.pc-av { width:52px; height:52px; border-radius:13px; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:900; flex-shrink:0; box-shadow:0 3px 12px var(--glow); }
+.pc-name { font-size:16px; font-weight:800; color:var(--ink); }
+.pc-email { font-size:11px; color:var(--muted); margin-top:2px; }
+.pc-tag { font-size:9px; font-weight:700; background:rgba(16,185,129,.12); color:var(--green2); padding:2px 7px; border-radius:7px; margin-top:6px; display:inline-block; text-transform:uppercase; letter-spacing:.05em; }
+
+.acc-group-title { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin:2px 0 5px 2px; flex-shrink:0; }
+.acc-group { background:var(--card); border-radius:13px; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
+.acc-row { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:.14s; touch-action:manipulation; }
 .acc-row:last-child { border:none; }
-.acc-row:hover { background:rgba(0,0,0,.03); }
-.acc-row:active { background:rgba(0,0,0,.06); }
-.arl { display:flex; align-items:center; gap:12px; }
-.ar-icon {
-  width:32px; height:32px; border-radius:9px;
-  background:rgba(74,108,255,.12); display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.ar-icon.red-bg { background:rgba(255,68,68,.1); }
-.ar-label { font-size:14px; font-weight:500; color:var(--ink); }
-.ar-arrow { color:var(--muted); font-size:15px; }
-/* ── BOTTOM NAV ─────────────────────────────────── */
-.bnav {
-  position:fixed; bottom:0; left:0; right:0;
-  height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  background:rgba(255,255,255,.97); backdrop-filter:blur(16px);
-  border-top:1px solid var(--border);
-  display:flex; justify-content:space-around; align-items:flex-start; padding-top:10px;
-  z-index:50;
-}
+.acc-row:hover { background:rgba(0,0,0,.025); }
+.acc-row:active { background:rgba(0,0,0,.05); }
+.arl { display:flex; align-items:center; gap:11px; }
+.ar-icon { width:30px; height:30px; border-radius:8px; background:rgba(26,59,255,.09); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ar-icon.red-bg { background:rgba(239,68,68,.09); }
+.ar-icon.green-bg { background:rgba(16,185,129,.09); }
+.ar-label { font-size:13px; font-weight:600; color:var(--ink); }
+.ar-arrow { color:var(--muted); font-size:14px; }
+
+/* ── BOTTOM NAV ── */
+.bnav { position:fixed; bottom:0; left:0; right:0; height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px)); background:rgba(255,255,255,.97); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; justify-content:space-around; align-items:flex-start; padding-top:9px; z-index:55; }
 @media(min-width:900px){ .bnav { display:none; } }
-.bni { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10px; font-weight:600; cursor:pointer; transition:.15s; padding:4px 16px; position:relative; touch-action:manipulation; }
-.bni.act { color:var(--blue2); }
-.bni.act svg path,.bni.act svg circle,.bni.act svg rect,.bni.act svg polyline,.bni.act svg line { stroke:var(--blue2); }
-.bni-dot { position:absolute; top:2px; right:10px; width:7px; height:7px; border-radius:50%; background:var(--red); border:2px solid var(--bg); display:none; }
+.bni { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); font-size:10px; font-weight:600; cursor:pointer; transition:.14s; padding:3px 12px; position:relative; touch-action:manipulation; }
+.bni.act { color:var(--blue); }
+.bni.act svg path,.bni.act svg circle,.bni.act svg rect,.bni.act svg polyline,.bni.act svg line { stroke:var(--blue); }
+.bni-dot { position:absolute; top:1px; right:7px; width:6px; height:6px; border-radius:50%; background:var(--red); border:2px solid #fff; display:none; }
 .bni-dot.show { display:block; }
-/* ── TOAST ──────────────────────────────────────── */
-.toast {
-  position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,16px) + 12px); left:50%;
-  transform:translateX(-50%) translateY(10px);
-  background:var(--ink); color:#fff; padding:11px 22px; border-radius:30px;
-  font-size:13px; font-weight:700; opacity:0; pointer-events:none;
-  transition:.22s; z-index:700; white-space:nowrap;
-  box-shadow:0 4px 24px rgba(0,0,0,.2);
-}
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,12px) + 10px); left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:#fff; padding:10px 20px; border-radius:26px; font-size:12px; font-weight:700; opacity:0; pointer-events:none; transition:.2s; z-index:700; white-space:nowrap; max-width:88vw; overflow:hidden; text-overflow:ellipsis; box-shadow:0 4px 18px rgba(0,0,0,.18); }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-@media(min-width:900px){ .toast { bottom:28px; } }
-/* ── MODAL ──────────────────────────────────────── */
-.mbg { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:500; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); }
+@media(min-width:900px){ .toast { bottom:26px; } }
+
+/* ── MODAL ── */
+.mbg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:500; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
 @media(min-width:900px){ .mbg { align-items:center; } }
 .mbg.show { display:flex; }
-.modal {
-  background:var(--card); border-radius:24px 24px 0 0; padding:26px 24px calc(36px + env(safe-area-inset-bottom,0px));
-  width:100%; max-width:420px; animation:sheetUp .28s cubic-bezier(.4,0,.2,1);
-  border:1px solid var(--border);
-}
-@media(min-width:900px){ .modal { border-radius:20px; padding-bottom:36px; } }
-@keyframes sheetUp { from { transform:translateY(60px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-.mh { font-size:19px; font-weight:800; color:var(--ink); margin-bottom:16px; }
-.mrow { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
+.modal { background:var(--card); border-radius:20px 20px 0 0; padding:20px 18px calc(28px + env(safe-area-inset-bottom,0px)); width:100%; max-width:420px; animation:sheetUp .25s cubic-bezier(.4,0,.2,1); border:1px solid var(--border); border-bottom:none; }
+@media(min-width:900px){ .modal { border-radius:16px; padding-bottom:28px; border:1px solid var(--border); } }
+@keyframes sheetUp { from{transform:translateY(52px);opacity:0} to{transform:translateY(0);opacity:1} }
+.mh { font-size:17px; font-weight:800; color:var(--ink); margin-bottom:13px; }
+.mrow { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
 .mrow:last-of-type { border:none; }
-.mrl { font-size:13px; color:var(--muted); }
-.mrv { font-size:13px; font-weight:600; color:var(--ink); max-width:200px; text-align:right; }
-.mbtns { display:flex; gap:10px; margin-top:18px; }
-.mcancel { flex:1; padding:13px; border:1.5px solid var(--border); background:transparent; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; color:var(--ink); transition:.15s; touch-action:manipulation; }
-.mcancel:hover { background:rgba(0,0,0,.05); }
-.mok { flex:2; padding:13px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 14px var(--glow); touch-action:manipulation; }
-/* Input */
-.t-input { width:100%; padding:13px 15px; border-radius:11px; border:1.5px solid var(--border); background:var(--card2); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; color:var(--ink); outline:none; transition:.2s; }
-.t-input:focus { border-color:var(--blue2); }
-.t-input::placeholder { color:var(--muted); }
-.slabel { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:8px; display:block; }
-.input-wrap { margin-bottom:14px; }
-.empty { text-align:center; padding:40px 20px; color:var(--muted); }
-.empty-ico { font-size:32px; margin-bottom:10px; }
+.mrl { font-size:12px; color:var(--muted); }
+.mrv { font-size:12px; font-weight:600; color:var(--ink); max-width:200px; text-align:right; }
+.mbtns { display:flex; gap:8px; margin-top:15px; }
+.mcancel { flex:1; padding:12px; border:1.5px solid var(--border); background:transparent; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; color:var(--ink); touch-action:manipulation; }
+.mcancel:active { background:var(--bg); }
+.mok { flex:2; padding:12px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 3px 12px var(--glow); touch-action:manipulation; }
+.t-input { width:100%; padding:12px 13px; border-radius:10px; border:1.5px solid var(--border); background:var(--card2); font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--ink); outline:none; transition:.18s; }
+.t-input:focus { border-color:var(--blue2); background:var(--card); }
+.t-input::placeholder { color:var(--muted); font-weight:400; }
+.slabel { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:6px; display:block; }
+.input-wrap { margin-bottom:12px; }
+.empty { text-align:center; padding:30px 14px; color:var(--muted); }
+.empty-ico { font-size:26px; margin-bottom:7px; }
 </style>
 </head>
 <body>
+
 <div class="init-loader" id="initLoader">
   <div class="loader-ring"></div>
   <div class="loader-brand">VynixRide Driver</div>
   <div class="loader-sub">Loading your dashboard…</div>
 </div>
+
 <div class="toast" id="toast"></div>
+
+<!-- ACCEPT MODAL -->
 <div class="mbg" id="acceptModal">
   <div class="modal">
-    <div class="mh">Accept Ride?</div>
+    <div class="mh">Confirm Ride Accept</div>
     <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
     <div class="mrow"><span class="mrl">Ride Type</span><b class="mrv" id="am-type">—</b></div>
     <div class="mrow"><span class="mrl">Pickup</span><b class="mrv" id="am-pickup">—</b></div>
     <div class="mrow"><span class="mrl">Destination</span><b class="mrv" id="am-dest">—</b></div>
     <div class="mrow"><span class="mrl">Distance</span><b class="mrv" id="am-dist">—</b></div>
-    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare">—</b></div>
+    <div class="mrow"><span class="mrl">Est. Duration</span><b class="mrv" id="am-dur">—</b></div>
+    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare" style="color:var(--green2);font-size:15px">—</b></div>
     <div class="mbtns">
       <button class="mcancel" onclick="closeAcceptModal()">Cancel</button>
-      <button class="mok" id="confirmAcceptBtn" onclick="confirmAccept()">Accept Ride</button>
+      <button class="mok" onclick="confirmAccept()">✓ Accept Ride</button>
     </div>
   </div>
 </div>
+
+<!-- VEHICLE MODAL -->
 <div class="mbg" id="vehicleModal">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
-    <div class="input-wrap">
-      <span class="slabel">Vehicle Make & Model</span>
-      <input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla">
-    </div>
-    <div class="input-wrap">
-      <span class="slabel">Licence Plate</span>
-      <input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase">
-    </div>
-    <div class="input-wrap">
-      <span class="slabel">Ride Type You Drive</span>
+    <div class="input-wrap"><span class="slabel">Vehicle Make & Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
+    <div class="input-wrap"><span class="slabel">Licence Plate</span><input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase"></div>
+    <div class="input-wrap"><span class="slabel">Ride Type You Drive</span>
       <select id="v-type" class="t-input">
-        <option value="VynixGo">VynixGo (Compact · Economy)</option>
-        <option value="VynixComfort">VynixComfort (Newer cars · Legroom)</option>
-        <option value="VynixXL">VynixXL (SUVs & Vans · 6 seats)</option>
+        <option value="VynixGo">VynixGo — Compact · Economy</option>
+        <option value="VynixComfort">VynixComfort — Newer · Legroom</option>
+        <option value="VynixXL">VynixXL — SUV · 6 seats</option>
       </select>
     </div>
-    <div class="mbtns">
-      <button class="mok" onclick="saveVehicle()" style="flex:1">Save & Continue</button>
-    </div>
+    <div class="mbtns"><button class="mok" onclick="saveVehicle()" style="flex:1">Save & Continue</button></div>
   </div>
 </div>
+
 <div class="shell">
+
+  <!-- SIDEBAR -->
   <aside class="sidebar" id="mainSidebar">
     <div class="s-logo">
       <div class="s-logo-mark">VX</div>
-      <div>
-        <div class="s-logo-txt">VynixRide</div>
-        <div class="s-logo-badge">Driver</div>
-      </div>
+      <div><div class="s-logo-txt">VynixRide</div><div class="s-logo-badge">Driver</div></div>
     </div>
     <div class="snl act" data-page="map" onclick="switchPage('map')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      <span class="s-ntxt">Live Rides</span>
-      <span class="s-badge" id="sb-req-count"></span>
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      <span class="s-ntxt">Live Rides</span><span class="s-badge" id="sb-req-count"></span>
     </div>
     <div class="snl" data-page="earnings" onclick="switchPage('earnings')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       <span class="s-ntxt">Earnings</span>
     </div>
+    <div class="snl" data-page="history" onclick="switchPage('history')">
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="s-ntxt">Trip History</span>
+    </div>
     <div class="snl" data-page="account" onclick="switchPage('account')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span class="s-ntxt">Account</span>
     </div>
     <div class="s-spacer"></div>
-    <div class="s-status-row" id="sidebarStatusRow" onclick="toggleOnline()">
-      <div class="s-status-dot" id="sidebarDot"></div>
-      <span class="s-status-txt" id="sidebarStatusTxt">Online</span>
+    <div class="s-status-row off" id="sidebarStatusRow" onclick="toggleOnline()">
+      <div class="s-status-dot off" id="sidebarDot"></div>
+      <span class="s-status-txt" id="sidebarStatusTxt">Offline</span>
     </div>
     <div class="s-user" onclick="switchPage('account')">
       <div class="s-av" id="sbAv">?</div>
-      <div class="s-user-info">
-        <div class="s-uname" id="sbName">Driver</div>
-        <div class="s-uemail" id="sbEmail">—</div>
-      </div>
+      <div class="s-user-info"><div class="s-uname" id="sbName">Driver</div><div class="s-uemail" id="sbEmail">—</div></div>
     </div>
   </aside>
+
+  <!-- MAIN -->
   <div class="main">
+
+    <!-- MOBILE TOPBAR -->
     <div class="topbar">
       <div class="tb-logo">
         <div class="tb-mark">VX</div>
@@ -487,142 +437,169 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
           <div class="ot-dot"></div>
           <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
         </div>
-        <div class="tb-av" id="tbAv">?</div>
+        <div class="tb-av" id="tbAv" onclick="switchPage('account')">?</div>
       </div>
     </div>
-    <div class="page show" id="page-map" style="padding:0; position:relative; overflow:hidden;">
-      <div id="driverMap"></div>
-      <!-- Reopen button (only appears after closing the status panel) -->
-      <div id="reopenPanelBtn" onclick="openMapPanel()" style="display:none; position:absolute; bottom:90px; left:20px; background:var(--blue); color:#fff; padding:10px 18px; border-radius:9999px; box-shadow:0 4px 20px var(--glow); font-weight:700; font-size:13px; z-index:100; display:flex; align-items:center; gap:8px; white-space:nowrap;">
-        <span style="font-size:18px;">📊</span> Driver Status
+
+    <!-- MAP PAGE -->
+    <div class="map-page show" id="page-map">
+      <!-- Map fills all remaining space, panel sits below/beside it -->
+      <div class="map-wrap" id="mapWrap">
+        <div id="driverMap"></div>
       </div>
-    </div>
+
+      <!-- Driver panel — NOT overlapping the map -->
+      <div class="driver-panel collapsed" id="driverPanel">
+
+        <!-- Mobile handle (tap to expand/collapse) -->
+        <div class="panel-handle" onclick="togglePanel()">
+          <div class="panel-drag-bar"></div>
+          <span class="panel-toggle-btn" id="panelToggleBtn">
+            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" id="panelChevron"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="panelToggleTxt">Expand</span>
+          </span>
+        </div>
+
+        <!-- Collapsed summary (mobile only) -->
+        <div class="panel-collapsed-row">
+          <div class="pcr-info">
+            <div class="pcr-dot" id="pcrDot"></div>
+            <span class="pcr-label" id="pcrLabel">Offline</span>
+          </div>
+          <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation(); toggleOnline()"></button>
+        </div>
+
+        <!-- Scrollable content -->
+        <div class="panel-scroll">
+
+          <!-- Status hero -->
+          <div class="status-hero">
+            <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
+            <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
+          </div>
+
+          <!-- Stats -->
+          <div class="stat-row" id="todayStats">
+            <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
+            <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
+            <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
+          </div>
+
+          <!-- Active ride -->
+          <div class="active-ride-card" id="activeRideCard">
+            <div class="ar-header">
+              <div class="ar-badge"><div class="ar-badge-dot"></div>Active Ride</div>
+              <div class="ar-fare-big" id="ar-fare">—</div>
+            </div>
+            <div class="ar-rider-row">
+              <div class="ar-av" id="ar-av">?</div>
+              <div><div class="ar-name" id="ar-name">—</div><div class="ar-dest-txt" id="ar-dest">—</div></div>
+            </div>
+            <div class="ar-cells">
+              <div class="ar-cell"><div class="ar-cell-lbl">PIN</div><div class="ar-cell-val" id="ar-pin">—</div></div>
+              <div class="ar-cell"><div class="ar-cell-lbl">Type</div><div class="ar-cell-val" id="ar-type" style="font-size:11px">—</div></div>
+              <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
+            </div>
+            <div class="ar-route-box">
+              <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt" style="font-size:11px; color:var(--muted)">—</span></div>
+              <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt" style="font-size:11px; color:var(--muted)">—</span></div>
+            </div>
+            <div class="ar-actions">
+              <button class="btn-cancel-active" onclick="cancelActiveRide()">Cancel</button>
+              <button class="btn-complete" onclick="completeRide()">✓ Complete Ride</button>
+            </div>
+          </div>
+
+          <!-- Requests -->
+          <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
+          <div class="ride-req-list" id="rideReqList">
+            <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
+          </div>
+
+        </div><!-- /panel-scroll -->
+      </div><!-- /driver-panel -->
+    </div><!-- /page-map -->
+
+    <!-- EARNINGS PAGE -->
     <div class="page" id="page-earnings">
-      <div>
-        <div class="ph">Earnings</div>
-        <div class="ph-sub">Your income summary</div>
-      </div>
+      <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
       <div class="earn-hero">
         <div class="eh-lbl">Total Earnings</div>
         <div class="eh-amount" id="totalEarnings">R 0.00</div>
         <div class="eh-stats">
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="totalTrips">0</div>
-            <div class="eh-stat-lbl">Trips</div>
-          </div>
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="todayEarnings">R0</div>
-            <div class="eh-stat-lbl">Today</div>
-          </div>
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="avgFare">R0</div>
-            <div class="eh-stat-lbl">Avg/trip</div>
-          </div>
+          <div class="eh-stat"><div class="eh-stat-val" id="totalTrips">0</div><div class="eh-stat-lbl">Trips</div></div>
+          <div class="eh-stat"><div class="eh-stat-val" id="todayEarnings">R0</div><div class="eh-stat-lbl">Today</div></div>
+          <div class="eh-stat"><div class="eh-stat-val" id="avgFare">R0</div><div class="eh-stat-lbl">Avg Fare</div></div>
         </div>
       </div>
-      <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase;">Trip History</div>
-      <div id="driverTripList"><div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div></div>
+      <div class="section-title">Recent Trips</div>
+      <div id="earningsTripList"><div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div></div>
     </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All rides you have completed</div></div>
+      <div id="historyList"><div class="empty"><div class="empty-ico">🗂️</div><p>No trips yet.</p></div></div>
+    </div>
+
+    <!-- ACCOUNT PAGE -->
     <div class="page" id="page-account">
-      <div>
-        <div class="ph">Account</div>
-      </div>
+      <div><div class="ph">Account</div></div>
       <div class="prof-card">
         <div class="pc-av" id="profAv">?</div>
-        <div>
-          <div class="pc-name" id="profName">Driver</div>
-          <div class="pc-email" id="profEmail">—</div>
-          <div class="pc-tag">🚗 VynixRide Driver</div>
-        </div>
+        <div><div class="pc-name" id="profName">Driver</div><div class="pc-email" id="profEmail">—</div><div class="pc-tag">🚗 VynixRide Driver</div></div>
       </div>
       <div class="acc-group-title">Vehicle</div>
       <div class="acc-group">
         <div class="acc-row" onclick="openVehicleModal()">
-          <div class="arl">
-            <div class="ar-icon"><svg width="15" height="15" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-            <div>
-              <div class="ar-label">Vehicle Details</div>
-              <div style="font-size:12px; color:var(--muted); margin-top:2px;" id="vehicleSummary">Not set up</div>
-            </div>
-          </div>
+          <div class="arl"><div class="ar-icon"><svg width="14" height="14" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          <div><div class="ar-label">Vehicle Details</div><div style="font-size:11px;color:var(--muted);margin-top:1px" id="vehicleSummary">Not set up yet</div></div></div>
           <div class="ar-arrow">›</div>
         </div>
       </div>
       <div class="acc-group-title">App</div>
       <div class="acc-group">
-        <div class="acc-row" onclick="window.open('index.html','_blank')">
-          <div class="arl">
-            <div class="ar-icon"><svg width="15" height="15" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
-            <div class="ar-label">Open Rider App</div>
-          </div>
+        <div class="acc-row" onclick="switchPage('history')">
+          <div class="arl"><div class="ar-icon green-bg"><svg width="14" height="14" fill="none" stroke="var(--green2)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ar-label">Trip History</div></div>
           <div class="ar-arrow">›</div>
         </div>
+        <div class="acc-row" onclick="window.open('index.html','_blank')">
+          <div class="arl"><div class="ar-icon"><svg width="14" height="14" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="ar-label">Open Rider App</div></div>
+          <div class="ar-arrow">›</div>
+        </div>
+        <div class="acc-row" onclick="doSignOut()">
+          <div class="arl"><div class="ar-icon red-bg"><svg width="14" height="14" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="ar-label" style="color:var(--red)">Sign Out</div></div>
+          <div class="ar-arrow" style="color:var(--red)">›</div>
+        </div>
       </div>
-      <div style="text-align:center; font-size:11px; color:var(--muted); margin-top:8px;">VynixRide Driver v1.0 · South Africa 🇿🇦</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px;">VynixRide Driver v1.0 · South Africa 🇿🇦</div>
     </div>
-    <div class="map-overlay-panel" id="mapPanel">
-      <div class="sheet-handle"></div>
-      <button onclick="closeMapPanel()" class="map-panel-close">✕</button>
-      <div class="status-hero">
-        <div class="sh-left">
-          <div class="sh-status-lbl">Driver Status</div>
-          <div class="sh-status-val off" id="statusVal">Offline</div>
-        </div>
-        <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
-      </div>
-      <div class="active-ride-card" id="activeRideCard">
-        <div class="ar-header">
-          <div class="ar-status">Active Ride</div>
-          <div class="ar-fare" id="ar-fare">—</div>
-        </div>
-        <div class="ar-rider">
-          <div class="ar-av" id="ar-av">?</div>
-          <div>
-            <div class="ar-name" id="ar-name">—</div>
-            <div class="ar-dest" id="ar-dest">—</div>
-          </div>
-        </div>
-        <div class="stat-row">
-          <div class="stat-card"><div class="sc-lbl">PIN</div><div class="sc-val" id="ar-pin">—</div></div>
-          <div class="stat-card"><div class="sc-lbl">Type</div><div class="sc-val" id="ar-type" style="font-size:13px">—</div></div>
-          <div class="stat-card"><div class="sc-lbl">Fare</div><div class="sc-val" id="ar-fare2" style="color:var(--green)">—</div></div>
-        </div>
-        <div class="ar-actions">
-          <button class="btn-cancel-active" onclick="cancelActiveRide()">Cancel</button>
-          <button class="btn-complete" onclick="completeRide()">✓ Complete Ride</button>
-        </div>
-      </div>
-      <div class="stat-row" id="todayStats">
-        <div class="stat-card"><div class="sc-lbl">Today</div><div class="sc-val" id="stat-rides">0 <span>rides</span></div></div>
-        <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
-        <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
-      </div>
-      <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; flex-shrink:0;" id="reqLabel">Incoming Requests</div>
-      <div class="ride-req-list" id="rideReqList">
-        <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
-      </div>
-    </div>
-  </div>
+
+  </div><!-- /main -->
+
+  <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bni act" id="bn-map" onclick="switchPage('map')">
       <div class="bni-dot" id="bn-map-dot"></div>
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Rides
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Rides
     </div>
     <div class="bni" id="bn-earnings" onclick="switchPage('earnings')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      Earnings
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Earnings
+    </div>
+    <div class="bni" id="bn-history" onclick="switchPage('history')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>History
     </div>
     <div class="bni" id="bn-account" onclick="switchPage('account')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Account
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account
     </div>
   </nav>
-</div>
+
+</div><!-- /shell -->
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-// ── SAME FIREBASE PROJECT as rider app ──────────────────────────────
+import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 const app = initializeApp({
   apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
   authDomain: "fire-b-a8878.firebaseapp.com",
@@ -633,12 +610,10 @@ const app = initializeApp({
   appId: "1:658673187627:web:32699cbc33e85f4bafa36e"
 });
 const db = getDatabase(app);
-// Mocking User to bypass Google Auth
-let cu = {
-  uid: "mock_driver_123",
-  displayName: "Test Driver",
-  email: "driver@vynixride.com"
-};
+
+// Mock user — replace with real Google Auth as needed
+let cu = { uid: "mock_driver_123", displayName: "Test Driver", email: "driver@vynixride.com" };
+
 let isOnline = false;
 let activeRideId = null;
 let pendingAcceptId = null;
@@ -646,10 +621,11 @@ let pendingAcceptData = null;
 let onlineStartTime = null;
 let statsToday = { rides: 0, earned: 0 };
 let rideRequestsUnsub = null;
-// ── APP INITIALIZATION ON LOAD ───────────────────────────────────────
+let panelExpanded = false;
+
+// ── INIT ───────────────────────────────────────────────────────────────
 window.onload = () => {
   document.getElementById('initLoader').classList.add('hide');
-  document.getElementById('mapPanel').classList.add('show-panel');
   updateUI(cu);
   loadTodayStats();
   loadTripHistory();
@@ -658,11 +634,13 @@ window.onload = () => {
   listenActiveRide();
   loadVehicleInfo();
 };
-// ── MAP ──────────────────────────────────────────────────────────────
+
+// ── MAP ────────────────────────────────────────────────────────────────
 const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 mapboxgl.accessToken = TK;
 const DLNG = 28.9934, DLAT = -24.1991;
 let driverMap, driverMarker;
+
 function initMap() {
   driverMap = new mapboxgl.Map({
     container: 'driverMap',
@@ -672,26 +650,30 @@ function initMap() {
   });
   driverMap.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
   const el = document.createElement('div');
-  el.style.cssText = 'width:22px;height:22px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 12px rgba(26,59,255,.5);';
+  el.style.cssText = 'width:20px;height:20px;background:var(--blue);border:3px solid #fff;border-radius:50%;box-shadow:0 2px 10px rgba(26,59,255,.4);';
   driverMarker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([DLNG, DLAT]).addTo(driverMap);
+  // Resize after panel layout settles
+  setTimeout(() => driverMap.resize(), 120);
 }
+
 function updateDriverLocation(lat, lng) {
   driverMarker?.setLngLat([lng, lat]);
   if (cu && isOnline) {
     set(ref(db, `active_drivers/${cu.uid}`), {
-      lat, lng, name: cu.displayName || 'Driver', uid: cu.uid,
-      online: true, timestamp: Date.now()
+      lat, lng, name: cu.displayName || 'Driver', uid: cu.uid, online: true, timestamp: Date.now()
     }).catch(() => {});
   }
 }
+
 function watchLocation() {
   if (!navigator.geolocation) return;
   navigator.geolocation.watchPosition(pos => {
-    const { latitude: la, longitude: lo } = pos.coords;
-    updateDriverLocation(la, lo);
-    driverMap?.flyTo({ center: [lo, la], zoom: 14, speed: 0.8 });
+    updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
+    driverMap?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, speed: 0.6 });
   }, () => {}, { enableHighAccuracy: true });
 }
+
+// ── HELPERS ────────────────────────────────────────────────────────────
 function ini2(n) { return (n || '?').split(' ').map(x => x[0]).join('').substring(0, 2).toUpperCase(); }
 function updateUI(u) {
   const n = u.displayName || 'Driver', e = u.email, i = ini2(n);
@@ -699,126 +681,150 @@ function updateUI(u) {
   ['sbName','profName'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = n; });
   ['sbEmail','profEmail'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = e; });
 }
-// ── ONLINE TOGGLE ────────────────────────────────────────────────────
+window.doSignOut = () => showToast('Sign out not configured in mock mode');
+
+// ── PANEL TOGGLE (mobile) ──────────────────────────────────────────────
+window.togglePanel = function() {
+  panelExpanded = !panelExpanded;
+  const panel = document.getElementById('driverPanel');
+  panel.classList.toggle('collapsed', !panelExpanded);
+  const txt = document.getElementById('panelToggleTxt');
+  const chev = document.getElementById('panelChevron');
+  if (txt) txt.textContent = panelExpanded ? 'Collapse' : 'Expand';
+  if (chev) chev.style.transform = panelExpanded ? 'rotate(180deg)' : '';
+  setTimeout(() => driverMap?.resize(), 360);
+};
+
+function expandPanel() {
+  if (window.innerWidth >= 900) return;
+  if (!panelExpanded) {
+    panelExpanded = true;
+    document.getElementById('driverPanel').classList.remove('collapsed');
+    const txt = document.getElementById('panelToggleTxt');
+    const chev = document.getElementById('panelChevron');
+    if (txt) txt.textContent = 'Collapse';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    setTimeout(() => driverMap?.resize(), 360);
+  }
+}
+
+// ── ONLINE TOGGLE ──────────────────────────────────────────────────────
 async function goOnline() {
   isOnline = true;
   onlineStartTime = Date.now();
   setOnlineUI(true);
-  if (!cu) return;
-  navigator.geolocation?.getCurrentPosition(pos => {
-    updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
-  }, () => { updateDriverLocation(DLAT, DLNG); });
+  navigator.geolocation?.getCurrentPosition(
+    pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
+    () => updateDriverLocation(DLAT, DLNG)
+  );
   listenRideRequests();
+  expandPanel();
   showToast('You are now Online 🟢');
 }
+
 async function goOffline() {
   isOnline = false;
   setOnlineUI(false);
   if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub = null; }
   if (cu) await remove(ref(db, `active_drivers/${cu.uid}`)).catch(() => {});
   document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
-  showToast('You are now Offline ⚫');
   updateHoursOnline();
+  showToast('You are now Offline ⚫');
 }
+
 window.toggleOnline = function() {
   if (!cu) { showToast('Please sign in first'); return; }
   if (activeRideId) { showToast('Complete your current ride first'); return; }
   if (isOnline) goOffline(); else goOnline();
 };
+
 function setOnlineUI(on) {
-  const bt = document.getElementById('bigToggle');
-  bt.classList.toggle('on', on);
-  const sv = document.getElementById('statusVal');
-  sv.textContent = on ? 'Online' : 'Offline';
-  sv.classList.toggle('off', !on);
-  const sd = document.getElementById('sidebarDot');
-  sd.classList.toggle('off', !on);
-  document.getElementById('sidebarStatusTxt').textContent = on ? 'Online' : 'Offline';
-  const sRow = document.getElementById('sidebarStatusRow');
-  sRow.classList.toggle('off', !on);
-  const mt = document.getElementById('mobileToggle');
-  mt.classList.toggle('on', on);
-  document.getElementById('mobileToggleLbl').textContent = on ? 'Online' : 'Offline';
+  ['bigToggle','bigToggleMini'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('on', on); });
+  const sv = document.getElementById('statusVal'); if (sv) { sv.textContent = on ? 'Online' : 'Offline'; sv.classList.toggle('off', !on); }
+  const sd = document.getElementById('sidebarDot'); if (sd) sd.classList.toggle('off', !on);
+  const st = document.getElementById('sidebarStatusTxt'); if (st) st.textContent = on ? 'Online' : 'Offline';
+  const sr = document.getElementById('sidebarStatusRow'); if (sr) sr.classList.toggle('off', !on);
+  const mt = document.getElementById('mobileToggle'); if (mt) mt.classList.toggle('on', on);
+  const ml = document.getElementById('mobileToggleLbl'); if (ml) ml.textContent = on ? 'Online' : 'Offline';
+  const pd = document.getElementById('pcrDot'); if (pd) pd.classList.toggle('on', on);
+  const pl = document.getElementById('pcrLabel'); if (pl) pl.textContent = on ? 'Online' : 'Offline';
 }
+
 function updateHoursOnline() {
   if (!onlineStartTime) return;
   const hrs = ((Date.now() - onlineStartTime) / 3600000).toFixed(1);
-  document.getElementById('stat-hrs').innerHTML = hrs + '<span>h</span>';
+  const el = document.getElementById('stat-hrs'); if (el) el.innerHTML = hrs + '<span>h</span>';
 }
-// ── RIDE REQUESTS LISTENER ───────────────────────────────────────────
+
+// ── RIDE REQUESTS ──────────────────────────────────────────────────────
 function listenRideRequests() {
   if (!cu) return;
-  const reqRef = ref(db, 'ride_requests');
-  rideRequestsUnsub = onValue(reqRef, snap => {
+  rideRequestsUnsub = onValue(ref(db, 'ride_requests'), snap => {
     const data = snap.val() || {};
     const pending = Object.entries(data).filter(([, v]) => v.status === 'pending');
     renderRideRequests(pending);
     const cnt = pending.length;
-    const badge = document.getElementById('sb-req-count');
-    badge.textContent = cnt > 0 ? cnt : '';
-    const dot = document.getElementById('bn-map-dot');
-    dot.classList.toggle('show', cnt > 0);
+    const badge = document.getElementById('sb-req-count'); if (badge) badge.textContent = cnt > 0 ? cnt : '';
+    const dot = document.getElementById('bn-map-dot'); if (dot) dot.classList.toggle('show', cnt > 0);
   });
 }
+
 function renderRideRequests(list) {
   const el = document.getElementById('rideReqList');
-  if (activeRideId) {
-    document.getElementById('reqLabel').style.display = 'none';
-    el.style.display = 'none';
-    document.getElementById('todayStats').style.display = 'none';
-    return;
-  }
-  document.getElementById('reqLabel').style.display = '';
-  el.style.display = '';
-  document.getElementById('todayStats').style.display = '';
-  if (!list.length) {
-    el.innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';
-    return;
-  }
+  const lbl = document.getElementById('reqLabel');
+  if (activeRideId) { if (lbl) lbl.style.display = 'none'; el.style.display = 'none'; return; }
+  if (lbl) lbl.style.display = ''; el.style.display = '';
+  if (!list.length) { el.innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>'; return; }
   el.innerHTML = list.map(([id, r]) => `
     <div class="req-card" id="req-${id}">
       <div class="req-top">
         <div class="req-rider">
-          <div class="req-av">${ini2(r.riderName || 'R')}</div>
-          <div>
-            <div class="req-name">${r.riderName || 'Rider'}</div>
-            <div class="req-type">${r.rideType || 'VynixGo'}</div>
-          </div>
+          <div class="req-av">${ini2(r.riderName||'R')}</div>
+          <div><div class="req-name">${r.riderName||'Rider'}</div><span class="req-type-chip">${r.rideType||'VynixGo'}</span></div>
         </div>
-        <div class="req-fare">R ${parseFloat(r.fare || 0).toFixed(2)}</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="req-fare">R ${parseFloat(r.fare||0).toFixed(2)}</div>
+          <div class="req-fare-lbl">est. fare</div>
+        </div>
       </div>
+      <div class="req-divider"></div>
       <div class="req-route">
-        <div class="req-point"><div class="rp-dot pickup"></div>${(r.pickup || 'Current Location').substring(0, 40)}</div>
-        <div class="req-point"><div class="rp-dot drop"></div>${(r.destination || '—').substring(0, 40)}</div>
+        <div class="req-point">
+          <div class="rp-icon pickup"><div class="rp-dot pickup"></div></div>
+          <div><div class="rp-lbl">Pickup</div><div class="rp-addr">${(r.pickup||'Current Location').substring(0,55)}</div></div>
+        </div>
+        <div class="req-point">
+          <div class="rp-icon drop"><div class="rp-dot drop"></div></div>
+          <div><div class="rp-lbl">Destination</div><div class="rp-addr">${(r.destination||'—').substring(0,55)}</div></div>
+        </div>
       </div>
       <div class="req-meta">
-        <span class="req-chip">📍 ${r.distKm ? r.distKm.toFixed(1) + ' km' : '—'}</span>
-        <span class="req-chip">⏱ ${r.tripMins ? r.tripMins + ' min trip' : '—'}</span>
-        <span class="req-chip">👤 ${r.capacity || 4} seats</span>
+        <span class="req-chip">📍 ${r.distKm?r.distKm.toFixed(1)+' km':'—'}</span>
+        <span class="req-chip">⏱ ${r.tripMins?r.tripMins+' min':'—'}</span>
+        <span class="req-chip">👤 ${r.capacity||4} seats</span>
+        <span class="req-chip">💳 Paid</span>
       </div>
       <div class="req-btns">
         <button class="btn-decline" onclick="declineRide('${id}')">Decline</button>
-        <button class="btn-accept" onclick="openAcceptModal('${id}')">Accept Ride</button>
+        <button class="btn-accept" onclick="openAcceptModal('${id}')">Accept →</button>
       </div>
     </div>
   `).join('');
 }
-// ── ACCEPT MODAL ─────────────────────────────────────────────────────
+
+// ── ACCEPT MODAL ───────────────────────────────────────────────────────
 window.openAcceptModal = function(id) {
   if (!isOnline) { showToast('Go online first'); return; }
   get(ref(db, `ride_requests/${id}`)).then(snap => {
-    if (!snap.exists() || snap.val().status !== 'pending') {
-      showToast('Ride already taken'); return;
-    }
-    const r = snap.val();
-    pendingAcceptId = id;
-    pendingAcceptData = r;
-    document.getElementById('am-rider').textContent = r.riderName || 'Rider';
-    document.getElementById('am-type').textContent = r.rideType || 'VynixGo';
-    document.getElementById('am-pickup').textContent = (r.pickup || 'Current Location').substring(0, 50);
-    document.getElementById('am-dest').textContent = (r.destination || '—').substring(0, 50);
-    document.getElementById('am-dist').textContent = r.distKm ? r.distKm.toFixed(1) + ' km' : '—';
-    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare || 0).toFixed(2)}`;
+    if (!snap.exists() || snap.val().status !== 'pending') { showToast('Ride already taken'); return; }
+    const r = snap.val(); pendingAcceptId = id; pendingAcceptData = r;
+    document.getElementById('am-rider').textContent = r.riderName||'Rider';
+    document.getElementById('am-type').textContent = r.rideType||'VynixGo';
+    document.getElementById('am-pickup').textContent = (r.pickup||'Current Location').substring(0,50);
+    document.getElementById('am-dest').textContent = (r.destination||'—').substring(0,50);
+    document.getElementById('am-dist').textContent = r.distKm ? r.distKm.toFixed(1)+' km' : '—';
+    document.getElementById('am-dur').textContent = r.tripMins ? r.tripMins+' min' : '—';
+    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
     document.getElementById('acceptModal').classList.add('show');
   });
 };
@@ -827,204 +833,163 @@ window.closeAcceptModal = function() {
   pendingAcceptId = null; pendingAcceptData = null;
 };
 window.confirmAccept = function() {
-  if (!pendingAcceptId || !cu) return;
-  const id = pendingAcceptId;
-  const r = pendingAcceptData;
-  const reqRef = ref(db, `ride_requests/${id}`);
-  runTransaction(reqRef, current => {
-    if (!current || current.status !== 'pending') return;
-    return { ...current, status: 'accepted', driverId: cu.uid, driverName: cu.displayName || 'Driver', acceptedAt: Date.now() };
+  if (!pendingAcceptId||!cu) return;
+  const id = pendingAcceptId, r = pendingAcceptData;
+  runTransaction(ref(db, `ride_requests/${id}`), current => {
+    if (!current||current.status!=='pending') return;
+    return { ...current, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver', acceptedAt:Date.now() };
   }).then(result => {
-    if (!result.committed) {
-      showToast('Ride already accepted by another driver');
-      window.closeAcceptModal();
-      return;
-    }
+    if (!result.committed) { showToast('Ride taken by another driver'); window.closeAcceptModal(); return; }
     activeRideId = id;
     window.closeAcceptModal();
     showActiveRide(r);
-    listenActiveRide();
+    expandPanel();
     showToast('Ride accepted! 🎉');
-  }).catch(() => { showToast('Error accepting ride'); });
+  }).catch(() => showToast('Error accepting ride'));
 };
 window.declineRide = function(id) {
   const el = document.getElementById(`req-${id}`);
-  if (el) el.remove();
+  if (el) { el.style.transition='.2s'; el.style.opacity='0'; el.style.transform='scale(0.96)'; setTimeout(()=>el.remove(),200); }
 };
-// ── ACTIVE RIDE ───────────────────────────────────────────────────────
+
+// ── ACTIVE RIDE ────────────────────────────────────────────────────────
 function showActiveRide(r) {
-  const card = document.getElementById('activeRideCard');
-  card.classList.add('show');
-  document.getElementById('ar-av').textContent = ini2(r.riderName || 'R');
-  document.getElementById('ar-name').textContent = r.riderName || 'Rider';
-  document.getElementById('ar-dest').textContent = (r.destination || '—').substring(0, 40);
-  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare || 0).toFixed(2)}`;
-  document.getElementById('ar-fare2').textContent = `R${parseFloat(r.fare || 0).toFixed(0)}`;
-  document.getElementById('ar-pin').textContent = r.securityPin || '—';
-  document.getElementById('ar-type').textContent = r.rideType || 'VynixGo';
-  document.getElementById('reqLabel').style.display = 'none';
-  document.getElementById('rideReqList').style.display = 'none';
-  document.getElementById('todayStats').style.display = 'none';
+  const card = document.getElementById('activeRideCard'); card.classList.add('show');
+  document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
+  document.getElementById('ar-name').textContent = r.riderName||'Rider';
+  document.getElementById('ar-dest').textContent = '→ '+(r.destination||'—').substring(0,38);
+  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+  document.getElementById('ar-pin').textContent = r.securityPin||'—';
+  document.getElementById('ar-type').textContent = r.rideType||'VynixGo';
+  document.getElementById('ar-seats').textContent = r.capacity||4;
+  document.getElementById('ar-pickup-txt').textContent = (r.pickup||'Current Location').substring(0,52);
+  document.getElementById('ar-drop-txt').textContent = (r.destination||'—').substring(0,52);
+  const lbl = document.getElementById('reqLabel'); if (lbl) lbl.style.display='none';
+  document.getElementById('rideReqList').style.display='none';
 }
 function listenActiveRide() {
   if (!cu) return;
   get(ref(db, 'ride_requests')).then(snap => {
-    const all = snap.val() || {};
-    const mine = Object.entries(all).find(([, v]) => v.status === 'accepted' && v.driverId === cu.uid);
-    if (mine) {
-      const [id, r] = mine;
-      activeRideId = id;
-      showActiveRide(r);
-    }
+    const all = snap.val()||{};
+    const mine = Object.entries(all).find(([,v])=>v.status==='accepted'&&v.driverId===cu.uid);
+    if (mine) { const [id,r] = mine; activeRideId = id; showActiveRide(r); }
   });
 }
 window.completeRide = async function() {
-  if (!activeRideId || !cu) return;
+  if (!activeRideId||!cu) return;
   try {
-    const snap = await get(ref(db, `ride_requests/${activeRideId}`));
-    const r = snap.val() || {};
-    const fare = parseFloat(r.fare || 0);
-    await push(ref(db, `drivers/${cu.uid}/trips`), {
-      rideType: r.rideType || 'VynixGo',
-      riderName: r.riderName || 'Rider',
-      destination: r.destination || '—',
-      fare, status: 'Completed', date: Date.now()
-    });
-    await remove(ref(db, `ride_requests/${activeRideId}`));
-    const eRef = ref(db, `drivers/${cu.uid}/earnings`);
-    const eSnap = await get(eRef);
-    const curr = eSnap.val() || { total: 0, trips: 0 };
-    await set(eRef, { total: curr.total + fare, trips: curr.trips + 1 });
-    statsToday.rides++;
-    statsToday.earned += fare;
-    document.getElementById('stat-rides').innerHTML = statsToday.rides + ' <span>rides</span>';
-    document.getElementById('stat-earn').textContent = 'R' + statsToday.earned.toFixed(0);
+    const snap = await get(ref(db,`ride_requests/${activeRideId}`)); const r = snap.val()||{};
+    const fare = parseFloat(r.fare||0);
+    await push(ref(db,`drivers/${cu.uid}/trips`),{rideType:r.rideType||'VynixGo',riderName:r.riderName||'Rider',pickup:r.pickup||'—',destination:r.destination||'—',distKm:r.distKm||0,tripMins:r.tripMins||0,capacity:r.capacity||4,fare,status:'Completed',date:Date.now()});
+    await remove(ref(db,`ride_requests/${activeRideId}`));
+    const eRef = ref(db,`drivers/${cu.uid}/earnings`); const eSnap = await get(eRef); const curr = eSnap.val()||{total:0,trips:0};
+    await set(eRef,{total:curr.total+fare,trips:curr.trips+1});
+    statsToday.rides++; statsToday.earned+=fare;
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+    document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
     activeRideId = null;
     document.getElementById('activeRideCard').classList.remove('show');
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
-    document.getElementById('todayStats').style.display = '';
-    loadTripHistory();
-    loadTodayStats();
-    showToast('Ride completed! +R' + fare.toFixed(2));
-  } catch (e) { showToast('Error completing ride'); }
+    const lbl = document.getElementById('reqLabel'); if (lbl) lbl.style.display='';
+    document.getElementById('rideReqList').style.display='';
+    loadTripHistory(); loadTodayStats();
+    showToast('✓ Ride completed! +R'+fare.toFixed(2));
+  } catch(e) { showToast('Error completing ride'); }
 };
 window.cancelActiveRide = async function() {
-  if (!activeRideId || !cu) return;
+  if (!activeRideId||!cu) return;
   try {
-    await update(ref(db, `ride_requests/${activeRideId}`), {
-      status: 'pending', driverId: null, driverName: null, acceptedAt: null
-    });
+    await update(ref(db,`ride_requests/${activeRideId}`),{status:'pending',driverId:null,driverName:null,acceptedAt:null});
     activeRideId = null;
     document.getElementById('activeRideCard').classList.remove('show');
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
-    document.getElementById('todayStats').style.display = '';
-    showToast('Ride cancelled — request returned to queue');
-  } catch (e) { showToast('Error cancelling'); }
+    const lbl = document.getElementById('reqLabel'); if (lbl) lbl.style.display='';
+    document.getElementById('rideReqList').style.display='';
+    showToast('Ride cancelled — returned to queue');
+  } catch(e) { showToast('Error cancelling'); }
 };
-// ── EARNINGS / TRIPS ──────────────────────────────────────────────────
+
+// ── STATS & HISTORY ────────────────────────────────────────────────────
 async function loadTodayStats() {
   if (!cu) return;
   try {
-    const snap = await get(ref(db, `drivers/${cu.uid}/earnings`));
-    const d = snap.val() || { total: 0, trips: 0 };
-    document.getElementById('totalEarnings').textContent = `R ${d.total.toFixed(2)}`;
-    document.getElementById('totalTrips').textContent = d.trips;
-    document.getElementById('avgFare').textContent = d.trips ? 'R' + (d.total / d.trips).toFixed(0) : 'R0';
-    document.getElementById('todayEarnings').textContent = 'R' + (d.total || 0).toFixed(0);
-    document.getElementById('stat-earn').textContent = 'R' + statsToday.earned.toFixed(0);
-  } catch (e) {}
+    const snap = await get(ref(db,`drivers/${cu.uid}/earnings`)); const d = snap.val()||{total:0,trips:0};
+    document.getElementById('totalEarnings').textContent=`R ${d.total.toFixed(2)}`;
+    document.getElementById('totalTrips').textContent=d.trips;
+    document.getElementById('avgFare').textContent=d.trips?'R'+(d.total/d.trips).toFixed(0):'R0';
+    document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
+  } catch(e){}
 }
 function loadTripHistory() {
   if (!cu) return;
-  onValue(ref(db, `drivers/${cu.uid}/trips`), snap => {
-    const list = Object.values(snap.val() || {}).reverse();
-    const el = document.getElementById('driverTripList');
-    if (!list.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div>';
-      return;
-    }
-    el.innerHTML = list.map(t => `
-      <div class="trip-hist-item">
-        <div>
-          <div class="th-type">${t.rideType || 'VynixGo'}</div>
-          <div class="th-dest">→ ${(t.destination || '—').substring(0, 35)}</div>
-          <div class="th-date">${t.date ? new Date(t.date).toLocaleString('en-ZA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          <span class="th-badge">✓ Completed</span>
+  onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
+    const list = Object.values(snap.val()||{}).reverse();
+    const hCount = document.getElementById('historyCount'); if(hCount) hCount.textContent = list.length+' trip'+(list.length!==1?'s':'')+' completed';
+    const card = (t) => `
+      <div class="trip-card">
+        <div style="flex:1;min-width:0">
+          <div class="tc-type">${t.rideType||'VynixGo'}</div>
+          <div class="tc-rider">👤 ${t.riderName||'Rider'}</div>
+          <div class="tc-route">📍 ${(t.pickup||'—').substring(0,28)} → ${(t.destination||'—').substring(0,28)}</div>
+          <div class="tc-date">${t.date?new Date(t.date).toLocaleString('en-ZA',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+          <span class="tc-badge">✓ Completed</span>
         </div>
-        <div style="text-align:right; flex-shrink:0">
-          <div class="th-fare">+R ${parseFloat(t.fare || 0).toFixed(2)}</div>
+        <div style="text-align:right;flex-shrink:0;padding-left:8px">
+          <div class="tc-fare">+R ${parseFloat(t.fare||0).toFixed(2)}</div>
+          ${t.distKm?`<div class="tc-km">${parseFloat(t.distKm).toFixed(1)} km</div>`:''}
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    const el = document.getElementById('earningsTripList');
+    el.innerHTML = list.length ? list.slice(0,5).map(card).join('') : '<div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div>';
+    const hl = document.getElementById('historyList');
+    hl.innerHTML = list.length ? list.map(card).join('') : '<div class="empty"><div class="empty-ico">🗂️</div><p>No trips yet.</p></div>';
     loadTodayStats();
   });
 }
-// ── VEHICLE ───────────────────────────────────────────────────────────
+
+// ── VEHICLE ────────────────────────────────────────────────────────────
 function loadVehicleInfo() {
   if (!cu) return;
-  get(ref(db, `drivers/${cu.uid}/vehicle`)).then(snap => {
+  get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap => {
     const v = snap.val();
     if (v) {
-      document.getElementById('vehicleSummary').textContent = `${v.car} · ${v.plate} · ${v.type}`;
-      document.getElementById('v-car').value = v.car || '';
-      document.getElementById('v-plate').value = v.plate || '';
-      document.getElementById('v-type').value = v.type || 'VynixGo';
-    } else {
-      setTimeout(() => document.getElementById('vehicleModal').classList.add('show'), 600);
-    }
+      document.getElementById('vehicleSummary').textContent=`${v.car} · ${v.plate} · ${v.type}`;
+      document.getElementById('v-car').value=v.car||''; document.getElementById('v-plate').value=v.plate||''; document.getElementById('v-type').value=v.type||'VynixGo';
+    } else { setTimeout(()=>document.getElementById('vehicleModal').classList.add('show'),700); }
   });
 }
-window.openVehicleModal = function() { document.getElementById('vehicleModal').classList.add('show'); };
+window.openVehicleModal = () => document.getElementById('vehicleModal').classList.add('show');
 window.saveVehicle = async function() {
   if (!cu) return;
   const car = document.getElementById('v-car').value.trim();
   const plate = document.getElementById('v-plate').value.trim().toUpperCase();
   const type = document.getElementById('v-type').value;
-  if (!car || !plate) { showToast('Please fill in all vehicle details'); return; }
-  await set(ref(db, `drivers/${cu.uid}/vehicle`), { car, plate, type });
-  document.getElementById('vehicleSummary').textContent = `${car} · ${plate} · ${type}`;
+  if (!car||!plate) { showToast('Please fill in all vehicle details'); return; }
+  await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type});
+  document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
   document.getElementById('vehicleModal').classList.remove('show');
   showToast('Vehicle details saved');
 };
-// ── PAGE NAV ──────────────────────────────────────────────────────────
+
+// ── PAGE NAV ───────────────────────────────────────────────────────────
+const PAGES = ['map','earnings','history','account'];
 window.switchPage = function(name) {
-  ['map', 'earnings', 'account'].forEach(p => {
-    const pg = document.getElementById(`page-${p}`);
-    if (pg) pg.classList.toggle('show', p === name);
-    const bn = document.getElementById(`bn-${p}`);
-    if (bn) bn.classList.toggle('act', p === name);
-    const snl = document.querySelector(`.snl[data-page="${p}"]`);
-    if (snl) snl.classList.toggle('act', p === name);
+  PAGES.forEach(p => {
+    const isMap = p === 'map';
+    const pg = document.getElementById(isMap?'page-map':`page-${p}`);
+    if (!pg) return;
+    if (isMap) { pg.classList.toggle('show', p===name); }
+    else { pg.classList.toggle('show', p===name); }
+    const bn = document.getElementById(`bn-${p}`); if(bn) bn.classList.toggle('act', p===name);
+    const snl = document.querySelector(`.snl[data-page="${p}"]`); if(snl) snl.classList.toggle('act', p===name);
   });
-  if (name === 'map') {
-    setTimeout(() => {
-      driverMap?.resize();
-      document.getElementById('mapPanel').classList.add('show-panel');
-      const reopenBtn = document.getElementById('reopenPanelBtn');
-      if (reopenBtn) reopenBtn.style.display = 'none';
-    }, 40);
-  }
+  if (name==='map') setTimeout(()=>driverMap?.resize(), 60);
 };
-// ── TOAST ─────────────────────────────────────────────────────────────
+
+// ── TOAST ──────────────────────────────────────────────────────────────
 window.showToast = function(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-};
-// ── DRIVER STATUS PANEL CONTROLS (close + reopen) ─────────────────────
-window.closeMapPanel = function() {
-  document.getElementById('mapPanel').classList.remove('show-panel');
-  const reopenBtn = document.getElementById('reopenPanelBtn');
-  if (reopenBtn) reopenBtn.style.display = 'flex';
-  showToast('Status panel closed');
-};
-window.openMapPanel = function() {
-  document.getElementById('mapPanel').classList.add('show-panel');
-  const reopenBtn = document.getElementById('reopenPanelBtn');
-  if (reopenBtn) reopenBtn.style.display = 'none';
+  setTimeout(()=>t.classList.remove('show'), 3000);
 };
 </script>
 </body>
-</html> 
+</html>
