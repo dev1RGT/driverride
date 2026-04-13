@@ -80,6 +80,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 }
 .g-btn:active { transform:scale(0.97); }
 .g-btn:hover { box-shadow:0 6px 28px rgba(0,0,0,.5); }
+.g-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
 .auth-note { font-size:12px; color:var(--muted); text-align:center; line-height:1.6; max-width:300px; }
 .auth-note a { color:var(--blue2); text-decoration:none; font-weight:600; }
 
@@ -714,7 +715,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as fbOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as fbOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // ── SAME FIREBASE PROJECT as rider app ──────────────────────────────
@@ -741,6 +742,41 @@ let onlineStartTime = null;
 let statsToday = { rides: 0, earned: 0 };
 let rideRequestsUnsub = null;
 let activeRideUnsub = null;
+
+// ── GOOGLE SIGN-IN ───────────────────────────────────────────────────
+// Try popup first; if it fails (mobile, blocked, iframe) fall back to redirect.
+async function handleGoogleSignIn() {
+  const btn = document.getElementById('driverGoogleBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    await signInWithPopup(auth, gp);
+    // onAuthStateChanged handles the rest
+  } catch (err) {
+    // Popup blocked or unavailable — fall back to redirect flow
+    if (
+      err.code === 'auth/popup-blocked' ||
+      err.code === 'auth/popup-closed-by-user' ||
+      err.code === 'auth/cancelled-popup-request' ||
+      err.code === 'auth/operation-not-supported-in-this-environment'
+    ) {
+      try {
+        await signInWithRedirect(auth, gp);
+        // Page will reload; getRedirectResult() picks up the result below
+      } catch (redirectErr) {
+        showToast('Sign-in failed. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.9C34.5 33.1 30 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.2-2.7-.2-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16.4 19.2 14 24 14c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 16.2 4 9.5 8.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 44c5.3 0 10.1-1.8 13.8-4.8l-6.4-5.4C29.5 35.5 26.9 36 24 36c-5.9 0-10.5-3.9-11.9-9.1l-7 5.4C8.4 39.6 15.6 44 24 44z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.9c-.6 3-2.5 5.5-5.1 7.3l6.4 5.4C41.9 37.5 44.5 31.2 44.5 24c0-1.3-.2-2.7-.2-4z"/></svg> Sign in with Google`;
+      }
+    } else {
+      showToast('Sign-in failed: ' + (err.message || err.code));
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.9C34.5 33.1 30 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.2-2.7-.2-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16.4 19.2 14 24 14c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 16.2 4 9.5 8.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 44c5.3 0 10.1-1.8 13.8-4.8l-6.4-5.4C29.5 35.5 26.9 36 24 36c-5.9 0-10.5-3.9-11.9-9.1l-7 5.4C8.4 39.6 15.6 44 24 44z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.9c-.6 3-2.5 5.5-5.1 7.3l6.4 5.4C41.9 37.5 44.5 31.2 44.5 24c0-1.3-.2-2.7-.2-4z"/></svg> Sign in with Google`;
+    }
+  }
+}
+
+document.getElementById('driverGoogleBtn').onclick = handleGoogleSignIn;
 
 // ── MAP ──────────────────────────────────────────────────────────────
 const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
@@ -781,15 +817,26 @@ function watchLocation() {
 }
 
 // ── AUTH ─────────────────────────────────────────────────────────────
-document.getElementById('driverGoogleBtn').onclick = () => {
-  signInWithPopup(auth, gp).catch(() => showToast('Sign-in cancelled'));
-};
+// Handle redirect result first (fires after signInWithRedirect returns)
+getRedirectResult(auth).then(result => {
+  if (result?.user) {
+    // onAuthStateChanged will handle the rest; nothing extra needed
+  }
+}).catch(err => {
+  if (err.code && err.code !== 'auth/no-such-provider') {
+    showToast('Sign-in error: ' + (err.message || err.code));
+  }
+});
 
 onAuthStateChanged(auth, async u => {
   document.getElementById('initLoader').classList.add('hide');
   cu = u;
   if (!u) {
     document.getElementById('authOverlay').classList.add('show');
+    // Re-enable sign-in button if it was disabled
+    const btn = document.getElementById('driverGoogleBtn');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.9C34.5 33.1 30 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.2-2.7-.2-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16.4 19.2 14 24 14c3 0 5.7 1.1 7.8 2.9l6.3-6.3C34.3 6 29.4 4 24 4 16.2 4 9.5 8.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 44c5.3 0 10.1-1.8 13.8-4.8l-6.4-5.4C29.5 35.5 26.9 36 24 36c-5.9 0-10.5-3.9-11.9-9.1l-7 5.4C8.4 39.6 15.6 44 24 44z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.9c-.6 3-2.5 5.5-5.1 7.3l6.4 5.4C41.9 37.5 44.5 31.2 44.5 24c0-1.3-.2-2.7-.2-4z"/></svg> Sign in with Google`;
     return;
   }
   document.getElementById('authOverlay').classList.remove('show');
@@ -848,20 +895,16 @@ window.toggleOnline = function() {
 };
 
 function setOnlineUI(on) {
-  // Big toggle
   const bt = document.getElementById('bigToggle');
   bt.classList.toggle('on', on);
-  // Status val
   const sv = document.getElementById('statusVal');
   sv.textContent = on ? 'Online' : 'Offline';
   sv.classList.toggle('off', !on);
-  // Sidebar
   const sd = document.getElementById('sidebarDot');
   sd.classList.toggle('off', !on);
   document.getElementById('sidebarStatusTxt').textContent = on ? 'Online' : 'Offline';
   const sRow = document.getElementById('sidebarStatusRow');
   sRow.classList.toggle('off', !on);
-  // Mobile toggle
   const mt = document.getElementById('mobileToggle');
   mt.classList.toggle('on', on);
   document.getElementById('mobileToggleLbl').textContent = on ? 'Online' : 'Offline';
@@ -881,7 +924,6 @@ function listenRideRequests() {
     const data = snap.val() || {};
     const pending = Object.entries(data).filter(([, v]) => v.status === 'pending');
     renderRideRequests(pending);
-    // update badge
     const cnt = pending.length;
     const badge = document.getElementById('sb-req-count');
     badge.textContent = cnt > 0 ? cnt : '';
@@ -937,7 +979,6 @@ function renderRideRequests(list) {
 // ── ACCEPT MODAL ─────────────────────────────────────────────────────
 window.openAcceptModal = function(id) {
   if (!isOnline) { showToast('Go online first'); return; }
-  // fetch latest data
   get(ref(db, `ride_requests/${id}`)).then(snap => {
     if (!snap.exists() || snap.val().status !== 'pending') {
       showToast('Ride already taken'); return;
@@ -966,9 +1007,8 @@ window.confirmAccept = function() {
   const r = pendingAcceptData;
   const reqRef = ref(db, `ride_requests/${id}`);
 
-  // Atomic transaction — first driver wins
   runTransaction(reqRef, current => {
-    if (!current || current.status !== 'pending') return; // abort
+    if (!current || current.status !== 'pending') return;
     return { ...current, status: 'accepted', driverId: cu.uid, driverName: cu.displayName || 'Driver', acceptedAt: Date.now() };
   }).then(result => {
     if (!result.committed) {
@@ -985,7 +1025,6 @@ window.confirmAccept = function() {
 };
 
 window.declineRide = function(id) {
-  // just hide locally, don't remove from DB so other drivers still see it
   const el = document.getElementById(`req-${id}`);
   if (el) el.remove();
 };
@@ -1008,7 +1047,6 @@ function showActiveRide(r) {
 
 function listenActiveRide() {
   if (!cu) return;
-  // Check if driver already has an active ride on reconnect
   get(ref(db, 'ride_requests')).then(snap => {
     const all = snap.val() || {};
     const mine = Object.entries(all).find(([, v]) => v.status === 'accepted' && v.driverId === cu.uid);
@@ -1027,7 +1065,6 @@ window.completeRide = async function() {
     const r = snap.val() || {};
     const fare = parseFloat(r.fare || 0);
 
-    // Save to driver's trip history
     await push(ref(db, `drivers/${cu.uid}/trips`), {
       rideType: r.rideType || 'VynixGo',
       riderName: r.riderName || 'Rider',
@@ -1035,16 +1072,13 @@ window.completeRide = async function() {
       fare, status: 'Completed', date: Date.now()
     });
 
-    // Remove ride request (cleans up for all drivers)
     await remove(ref(db, `ride_requests/${activeRideId}`));
 
-    // Update earnings
     const eRef = ref(db, `drivers/${cu.uid}/earnings`);
     const eSnap = await get(eRef);
     const curr = eSnap.val() || { total: 0, trips: 0 };
     await set(eRef, { total: curr.total + fare, trips: curr.trips + 1 });
 
-    // Today stats
     statsToday.rides++;
     statsToday.earned += fare;
     document.getElementById('stat-rides').innerHTML = statsToday.rides + ' <span>rides</span>';
@@ -1064,7 +1098,6 @@ window.completeRide = async function() {
 window.cancelActiveRide = async function() {
   if (!activeRideId || !cu) return;
   try {
-    // Reset ride back to pending
     await update(ref(db, `ride_requests/${activeRideId}`), {
       status: 'pending', driverId: null, driverName: null, acceptedAt: null
     });
@@ -1128,7 +1161,6 @@ function loadVehicleInfo() {
       document.getElementById('v-plate').value = v.plate || '';
       document.getElementById('v-type').value = v.type || 'VynixGo';
     } else {
-      // Prompt setup on first login
       setTimeout(() => document.getElementById('vehicleModal').classList.add('show'), 600);
     }
   });
