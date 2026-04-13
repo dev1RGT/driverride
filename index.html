@@ -860,6 +860,11 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// Add this line right here to force the account chooser
+provider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 let cu = null; 
 
 let isOnline = false;
