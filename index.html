@@ -30,12 +30,23 @@
 html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:var(--ink); }
 
 /* ── INIT LOADER ── */
-.init-loader { position:fixed; inset:0; background:var(--card); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
+.init-loader { position:fixed; inset:0; background:var(--card); z-index:10001; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s; }
 .init-loader.hide { opacity:0; pointer-events:none; }
 .loader-ring { width:44px; height:44px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; margin-bottom:14px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .loader-brand { font-size:16px; font-weight:800; color:var(--blue); }
 .loader-sub { font-size:11px; color:var(--muted); margin-top:3px; font-weight:500; }
+
+/* ── AUTH OVERLAY ── */
+.auth-overlay { position:fixed; inset:0; background:var(--bg); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .4s, visibility .4s; }
+.auth-overlay.hide { opacity:0; visibility:hidden; pointer-events:none; }
+.auth-card { background:var(--card); padding:40px 30px; border-radius:24px; box-shadow:0 10px 40px rgba(0,0,0,.08); text-align:center; max-width:340px; width:90%; border:1px solid var(--border); animation:slideIn .4s cubic-bezier(.4,0,.2,1); }
+.auth-logo { width:60px; height:60px; background:linear-gradient(135deg,var(--blue2),var(--blue)); border-radius:16px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900; color:#fff; box-shadow:0 8px 24px var(--glow); }
+.auth-title { font-size:22px; font-weight:800; color:var(--ink); margin-bottom:8px; letter-spacing:-0.5px; }
+.auth-sub { font-size:13px; color:var(--muted); margin-bottom:30px; font-weight:500; line-height:1.4; }
+.btn-google { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px; border:1.5px solid var(--border); background:var(--card); border-radius:12px; font-size:14px; font-weight:700; color:var(--ink); cursor:pointer; transition:.2s; font-family:'Outfit',sans-serif; touch-action:manipulation; }
+.btn-google:hover { background:var(--card2); border-color:#d1d5db; }
+.btn-google:active { transform:scale(0.98); background:var(--border); }
 
 /* ── SHELL ── */
 .shell { display:flex; height:100dvh; width:100vw; overflow:hidden; }
@@ -95,21 +106,14 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .ot-lbl { font-size:11px; font-weight:700; color:var(--muted); }
 .online-toggle.on .ot-lbl { color:var(--green2); }
 
-/* ── MAP PAGE: fills remaining height, map + panel stacked (mobile) or side-by-side (desktop) ── */
+/* ── MAP PAGE ── */
 .map-page { flex:1; display:none; flex-direction:column; overflow:hidden; min-height:0; }
 .map-page.show { display:flex; }
-
-/* On desktop: row layout */
-@media(min-width:900px){
-  .map-page { flex-direction:row; }
-}
-
-/* Map fills available space */
+@media(min-width:900px){ .map-page { flex-direction:row; } }
 .map-wrap { flex:1; position:relative; overflow:hidden; min-height:0; min-width:0; }
 #driverMap { position:absolute; inset:0; width:100%; height:100%; }
 
 /* ── DRIVER PANEL ── */
-/* Mobile: fixed height at bottom of map-page, no overlap */
 .driver-panel {
   background:var(--card);
   flex-shrink:0;
@@ -124,7 +128,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   .driver-panel {
     height:var(--panel-expanded);
     transition:height .32s cubic-bezier(.4,0,.2,1);
-    /* reserve space for bottom nav */
     padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
   }
   .driver-panel.collapsed { height:var(--panel-collapsed); }
@@ -137,11 +140,10 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     border-right:1px solid var(--border);
     border-radius:0;
     box-shadow:none;
-    order:-1; /* left side */
+    order:-1; 
   }
 }
 
-/* Handle row (mobile only) */
 .panel-handle { display:flex; align-items:center; justify-content:center; padding:8px 16px 4px; flex-shrink:0; cursor:pointer; position:relative; touch-action:manipulation; }
 @media(min-width:900px){ .panel-handle { display:none; } }
 .panel-drag-bar { width:36px; height:4px; background:var(--border); border-radius:4px; }
@@ -153,18 +155,14 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   padding:3px 9px; cursor:pointer; touch-action:manipulation;
 }
 
-/* Collapsed summary row (mobile only) */
 .panel-collapsed-row { display:none; align-items:center; justify-content:space-between; padding:0 16px 8px; flex-shrink:0; }
 .driver-panel.collapsed .panel-collapsed-row { display:flex; }
 .pcr-info { display:flex; align-items:center; gap:8px; }
 .pcr-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
 .pcr-dot.on { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
 .pcr-label { font-size:13px; font-weight:700; color:var(--ink); }
-
-/* When collapsed hide the scroll content */
 .driver-panel.collapsed .panel-scroll { display:none; }
 
-/* Scrollable panel body */
 .panel-scroll { flex:1; overflow-y:auto; padding:10px 15px 10px; display:flex; flex-direction:column; gap:11px; -webkit-overflow-scrolling:touch; min-height:0; }
 @media(min-width:900px){ .panel-scroll { padding:18px 18px 18px; gap:13px; } }
 .panel-scroll::-webkit-scrollbar { width:3px; }
@@ -204,9 +202,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 .req-type-chip { font-size:9px; font-weight:700; background:rgba(26,59,255,.08); color:var(--blue); padding:2px 7px; border-radius:7px; margin-top:2px; display:inline-block; }
 .req-fare { font-size:17px; font-weight:900; color:var(--green2); flex-shrink:0; }
 .req-fare-lbl { font-size:9px; color:var(--muted); font-weight:600; text-align:right; }
-
 .req-divider { height:1px; background:var(--border); margin:9px 0; }
-
 .req-route { display:flex; flex-direction:column; gap:8px; margin-bottom:9px; }
 .req-point { display:flex; align-items:flex-start; gap:9px; }
 .rp-icon { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
@@ -348,12 +344,23 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 <div class="init-loader" id="initLoader">
   <div class="loader-ring"></div>
   <div class="loader-brand">VynixRide Driver</div>
-  <div class="loader-sub">Loading your dashboard…</div>
+  <div class="loader-sub">Authenticating...</div>
+</div>
+
+<div id="authOverlay" class="auth-overlay hide">
+  <div class="auth-card">
+    <div class="auth-logo">VX</div>
+    <h1 class="auth-title">VynixRide Driver</h1>
+    <p class="auth-sub">Sign in to access your dashboard, view earnings, and manage ride requests.</p>
+    <button id="btnGoogleSignIn" class="btn-google">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Sign in with Google
+    </button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ACCEPT MODAL -->
 <div class="mbg" id="acceptModal">
   <div class="modal">
     <div class="mh">Confirm Ride Accept</div>
@@ -371,7 +378,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   </div>
 </div>
 
-<!-- VEHICLE MODAL -->
 <div class="mbg" id="vehicleModal">
   <div class="modal">
     <div class="mh">Vehicle Details</div>
@@ -390,7 +396,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 <div class="shell">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="mainSidebar">
     <div class="s-logo">
       <div class="s-logo-mark">VX</div>
@@ -423,10 +428,8 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
 
-    <!-- MOBILE TOPBAR -->
     <div class="topbar">
       <div class="tb-logo">
         <div class="tb-mark">VX</div>
@@ -441,17 +444,13 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
       </div>
     </div>
 
-    <!-- MAP PAGE -->
     <div class="map-page show" id="page-map">
-      <!-- Map fills all remaining space, panel sits below/beside it -->
       <div class="map-wrap" id="mapWrap">
         <div id="driverMap"></div>
       </div>
 
-      <!-- Driver panel — NOT overlapping the map -->
       <div class="driver-panel collapsed" id="driverPanel">
 
-        <!-- Mobile handle (tap to expand/collapse) -->
         <div class="panel-handle" onclick="togglePanel()">
           <div class="panel-drag-bar"></div>
           <span class="panel-toggle-btn" id="panelToggleBtn">
@@ -460,7 +459,6 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
           </span>
         </div>
 
-        <!-- Collapsed summary (mobile only) -->
         <div class="panel-collapsed-row">
           <div class="pcr-info">
             <div class="pcr-dot" id="pcrDot"></div>
@@ -469,23 +467,19 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
           <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation(); toggleOnline()"></button>
         </div>
 
-        <!-- Scrollable content -->
         <div class="panel-scroll">
 
-          <!-- Status hero -->
           <div class="status-hero">
             <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
             <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
           </div>
 
-          <!-- Stats -->
           <div class="stat-row" id="todayStats">
             <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
             <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
             <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
           </div>
 
-          <!-- Active ride -->
           <div class="active-ride-card" id="activeRideCard">
             <div class="ar-header">
               <div class="ar-badge"><div class="ar-badge-dot"></div>Active Ride</div>
@@ -510,17 +504,15 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
             </div>
           </div>
 
-          <!-- Requests -->
           <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
           <div class="ride-req-list" id="rideReqList">
             <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
           </div>
 
-        </div><!-- /panel-scroll -->
-      </div><!-- /driver-panel -->
-    </div><!-- /page-map -->
+        </div>
+      </div>
+    </div>
 
-    <!-- EARNINGS PAGE -->
     <div class="page" id="page-earnings">
       <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
       <div class="earn-hero">
@@ -536,13 +528,11 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
       <div id="earningsTripList"><div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div></div>
     </div>
 
-    <!-- HISTORY PAGE -->
     <div class="page" id="page-history">
       <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All rides you have completed</div></div>
       <div id="historyList"><div class="empty"><div class="empty-ico">🗂️</div><p>No trips yet.</p></div></div>
     </div>
 
-    <!-- ACCOUNT PAGE -->
     <div class="page" id="page-account">
       <div><div class="ph">Account</div></div>
       <div class="prof-card">
@@ -575,9 +565,8 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
       <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px;">VynixRide Driver v1.0 · South Africa 🇿🇦</div>
     </div>
 
-  </div><!-- /main -->
+  </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bnav">
     <div class="bni act" id="bn-map" onclick="switchPage('map')">
       <div class="bni-dot" id="bn-map-dot"></div>
@@ -594,10 +583,11 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     </div>
   </nav>
 
-</div><!-- /shell -->
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const app = initializeApp({
@@ -610,9 +600,10 @@ const app = initializeApp({
   appId: "1:658673187627:web:32699cbc33e85f4bafa36e"
 });
 const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-// Mock user — replace with real Google Auth as needed
-let cu = { uid: "mock_driver_123", displayName: "Test Driver", email: "driver@vynixride.com" };
+let cu = null; // Replaced mock user with real authenticated user
 
 let isOnline = false;
 let activeRideId = null;
@@ -623,16 +614,39 @@ let statsToday = { rides: 0, earned: 0 };
 let rideRequestsUnsub = null;
 let panelExpanded = false;
 
-// ── INIT ───────────────────────────────────────────────────────────────
-window.onload = () => {
+// ── INIT & AUTH ────────────────────────────────────────────────────────
+onAuthStateChanged(auth, (user) => {
   document.getElementById('initLoader').classList.add('hide');
-  updateUI(cu);
-  loadTodayStats();
-  loadTripHistory();
-  initMap();
-  watchLocation();
-  listenActiveRide();
-  loadVehicleInfo();
+  const overlay = document.getElementById('authOverlay');
+  
+  if (user) {
+    cu = user;
+    overlay.classList.add('hide');
+    updateUI(cu);
+    loadTodayStats();
+    loadTripHistory();
+    if (!driverMap) initMap(); // Ensure map only initializes once
+    watchLocation();
+    listenActiveRide();
+    loadVehicleInfo();
+  } else {
+    cu = null;
+    overlay.classList.remove('hide');
+    if (isOnline) goOffline();
+  }
+});
+
+document.getElementById('btnGoogleSignIn').addEventListener('click', () => {
+  signInWithPopup(auth, provider).catch(error => {
+    showToast('Login failed: ' + error.message);
+  });
+});
+
+window.doSignOut = () => {
+  if (isOnline) goOffline(); // Safe disconnect
+  signOut(auth).then(() => {
+    showToast('Signed out successfully');
+  }).catch(() => showToast('Error signing out'));
 };
 
 // ── MAP ────────────────────────────────────────────────────────────────
@@ -652,7 +666,6 @@ function initMap() {
   const el = document.createElement('div');
   el.style.cssText = 'width:20px;height:20px;background:var(--blue);border:3px solid #fff;border-radius:50%;box-shadow:0 2px 10px rgba(26,59,255,.4);';
   driverMarker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([DLNG, DLAT]).addTo(driverMap);
-  // Resize after panel layout settles
   setTimeout(() => driverMap.resize(), 120);
 }
 
@@ -681,7 +694,6 @@ function updateUI(u) {
   ['sbName','profName'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = n; });
   ['sbEmail','profEmail'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = e; });
 }
-window.doSignOut = () => showToast('Sign out not configured in mock mode');
 
 // ── PANEL TOGGLE (mobile) ──────────────────────────────────────────────
 window.togglePanel = function() {
