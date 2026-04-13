@@ -22,6 +22,8 @@
   --amber: #FFB020;
   --glow: rgba(26,59,255,.25);
   --nav-h: 68px;
+  --sidebar-w: 76px;
+  --sidebar-expanded-w: 260px;
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; background:var(--bg); color:#E8ECFF; }
@@ -39,58 +41,37 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   animation:spin .8s linear infinite; margin-bottom:16px;
 }
 @keyframes spin { to { transform:rotate(360deg); } }
-.loader-brand { font-size:17px; font-weight:800; color:var(--blue); letter-spacing:-.3px; }
-.loader-sub { font-size:12px; color:var(--muted); margin-top:4px; font-weight:500; }
-
-/* ── SHEET HANDLE ───────────────────────────────── */
-.sheet-handle {
-  width:40px; height:5px; background:var(--border); border-radius:10px;
-  margin: 0 auto 16px auto; flex-shrink: 0;
-}
 
 /* ── SHELL ──────────────────────────────────────── */
 .shell { display:flex; height:100vh; width:100vw; overflow:hidden; }
 
 /* ── SIDEBAR ────────────────────────────────────── */
 .sidebar {
-  display:none; width:76px; background:var(--card);
+  display:none; width:var(--sidebar-w); background:var(--card);
   border-right:1px solid var(--border);
-  flex-direction:column; padding:24px 12px; z-index:60; flex-shrink:0;
-  transition:width .3s cubic-bezier(.4,0,.2,1), padding .3s cubic-bezier(.4,0,.2,1);
+  flex-direction:column; padding:24px 12px; z-index:200; flex-shrink:0;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow:hidden; white-space:nowrap;
 }
 @media(min-width:900px){ .sidebar { display:flex; } }
-.sidebar:hover { width:260px; padding:24px 18px; box-shadow:4px 0 30px rgba(0,0,0,.3); }
-.s-logo {
-  display:flex; align-items:center; gap:12px; margin-bottom:32px; padding-left:4px; min-width:220px;
-}
+.sidebar:hover { width:var(--sidebar-expanded-w); padding:24px 18px; box-shadow:10px 0 40px rgba(0,0,0,0.4); }
+
+.s-logo { display:flex; align-items:center; gap:12px; margin-bottom:32px; padding-left:4px; min-width:220px; }
 .s-logo-mark {
   width:38px; height:38px; background:var(--blue); border-radius:11px; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; font-weight:900; color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:#fff;
   box-shadow:0 4px 14px var(--glow);
 }
-.s-logo-txt { opacity:0; transition:opacity .15s .08s; font-size:16px; font-weight:900; color:#E8ECFF; letter-spacing:-.3px; }
+.s-logo-txt { opacity:0; transition:opacity .2s; font-size:16px; font-weight:900; }
 .sidebar:hover .s-logo-txt { opacity:1; }
-.s-logo-badge { opacity:0; transition:opacity .15s .1s; font-size:10px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:2px 8px; border-radius:10px; }
-.sidebar:hover .s-logo-badge { opacity:1; }
 
 .snl {
-  display:flex; align-items:center; gap:14px; padding:12px 10px;
-  border-radius:11px; color:var(--muted); cursor:pointer; transition:.15s;
-  margin-bottom:3px; min-width:224px;
+  display:flex; align-items:center; gap:14px; padding:12px 10px; border-radius:11px;
+  color:var(--muted); cursor:pointer; transition:.15s; margin-bottom:3px; min-width:224px;
 }
-.snl svg { flex-shrink:0; width:20px; height:20px; }
-.snl:hover { background:rgba(255,255,255,.05); color:#E8ECFF; }
 .snl.act { background:rgba(26,59,255,.15); color:var(--blue2); }
-.s-ntxt { opacity:0; transition:opacity .15s .08s; font-size:14px; font-weight:600; }
+.s-ntxt { opacity:0; transition:opacity .2s; font-size:14px; font-weight:600; }
 .sidebar:hover .s-ntxt { opacity:1; }
-.s-badge {
-  opacity:0; transition:opacity .15s .1s; margin-left:auto;
-  background:var(--red); color:#fff; font-size:10px; font-weight:800;
-  padding:2px 7px; border-radius:20px; min-width:20px; text-align:center;
-}
-.sidebar:hover .s-badge { opacity:1; }
 
 .s-spacer { flex:1; }
 .s-status-row {
@@ -98,986 +79,253 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
   background:rgba(0,217,126,.08); border:1px solid rgba(0,217,126,.18);
   border-radius:11px; margin-bottom:10px; cursor:pointer; min-width:224px; transition:.2s;
 }
-.s-status-row:hover { background:rgba(0,217,126,.14); }
-.s-status-dot { width:9px; height:9px; border-radius:50%; background:var(--green); flex-shrink:0; animation:pulse-dot 2s ease-in-out infinite; }
-.s-status-dot.off { background:var(--muted); animation:none; }
-@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(0,217,126,.5)} 50%{box-shadow:0 0 0 5px rgba(0,217,126,0)} }
-.s-status-txt { opacity:0; transition:opacity .15s .08s; font-size:13px; font-weight:700; color:var(--green); }
-.s-status-row.off .s-status-txt { color:var(--muted); }
+.s-status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.s-status-dot.off { background: var(--muted); }
+.s-status-txt { opacity:0; transition:opacity .2s; font-size:13px; font-weight:700; color:var(--green); }
 .sidebar:hover .s-status-txt { opacity:1; }
 
-.s-user {
-  display:flex; align-items:center; gap:12px; padding:10px;
-  background:rgba(255,255,255,.04); border-radius:11px; min-width:224px; cursor:pointer; transition:.15s;
-}
-.s-user:hover { background:rgba(255,255,255,.07); }
-.s-av { width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
-.s-user-info { opacity:0; transition:opacity .15s .08s; overflow:hidden; }
-.sidebar:hover .s-user-info { opacity:1; }
-.s-uname { font-size:13px; font-weight:700; color:#E8ECFF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
-.s-uemail { font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; margin-top:1px; }
-
 /* ── MAIN ───────────────────────────────────────── */
-.main { flex:1; height:100vh; overflow:hidden; position:relative; display:flex; flex-direction:column; }
-
-/* ── TOP BAR (mobile) ───────────────────────────── */
-.topbar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px 0; flex-shrink:0;
+.main { 
+  flex:1; height:100vh; overflow:hidden; position:relative; 
+  display:flex; flex-direction:column; z-index:10;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-@media(min-width:900px){ .topbar { display:none; } }
-.tb-logo { display:flex; align-items:center; gap:10px; }
-.tb-mark { width:34px; height:34px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; }
-.tb-name { font-size:15px; font-weight:800; color:#E8ECFF; }
-.tb-badge { font-size:9px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:2px 7px; border-radius:8px; margin-left:4px; }
-.tb-right { display:flex; align-items:center; gap:10px; }
-.tb-av { width:34px; height:34px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
-.online-toggle {
-  display:flex; align-items:center; gap:7px;
-  background:rgba(0,0,0,.3); border:1px solid var(--border);
-  padding:7px 14px; border-radius:20px; cursor:pointer; transition:.2s;
-  touch-action: manipulation;
-}
-.online-toggle.on { background:rgba(0,217,126,.12); border-color:rgba(0,217,126,.3); }
-.ot-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
-.online-toggle.on .ot-dot { background:var(--green); animation:pulse-dot 2s ease-in-out infinite; }
-.ot-lbl { font-size:12px; font-weight:700; color:var(--muted); }
-.online-toggle.on .ot-lbl { color:var(--green); }
 
-/* ── PAGE CONTENT ───────────────────────────────── */
-.page { flex:1; overflow-y:auto; padding:20px 20px calc(var(--nav-h) + 360px + env(safe-area-inset-bottom,16px)); display:none; flex-direction:column; gap:16px; }
-@media(min-width:900px) { .page { padding:28px 32px 28px; } }
-.page.show { display:flex; }
-.page::-webkit-scrollbar { width:4px; }
-.page::-webkit-scrollbar-track { background:transparent; }
-.page::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-
-.ph { font-size:22px; font-weight:900; color:#E8ECFF; letter-spacing:-.4px; flex-shrink:0; }
-.ph-sub { font-size:13px; color:var(--muted); margin-top:3px; font-weight:500; }
-
-/* ── MAP PAGE ───────────────────────────────────── */
-#page-map { padding:0; position:relative; overflow:hidden; }
-#driverMap { width:100%; height:100%; }
-
-/* ── PERSISTENT OVERLAY PANEL (BOTTOM SHEET) ────── */
+/* ── MODERN STATUS PANEL ────────────────────────── */
 .map-overlay-panel {
   position:fixed; left:0; right:0; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  background:rgba(22,27,38,.97); backdrop-filter:blur(20px);
+  background:rgba(22, 27, 38, 0.94); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   border-top:1px solid var(--border); padding:16px 20px 22px;
-  z-index:40; display:none; flex-direction:column; gap:14px;
+  z-index:150; display:flex; flex-direction:column; gap:14px;
   border-radius: 28px 28px 0 0;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-  animation: sheetUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+  transform: translateY(110%); 
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.map-overlay-panel.show-panel {
-  display: flex;
-}
+.map-overlay-panel.show-panel { transform: translateY(0); }
+
 @media(min-width:900px) {
   .map-overlay-panel {
-    left:22px; right:auto; bottom:22px; top:22px; width:370px;
-    border:1px solid var(--border); border-radius:18px; padding:24px;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    left: calc(var(--sidebar-w) + 20px); 
+    right: auto; bottom: 20px; top: 20px; width: 380px;
+    border: 1px solid var(--border); border-radius: 24px;
   }
-  .map-overlay-panel .sheet-handle { display: none; }
+  /* PANEL SHIFTS WHEN SIDEBAR IS HOVERED */
+  .sidebar:hover ~ .main .map-overlay-panel {
+    left: calc(var(--sidebar-expanded-w) + 20px);
+  }
 }
 
-.status-hero {
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
+.panel-header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 4px; }
+.sheet-handle { width:40px; height:5px; background:var(--border); border-radius:10px; }
+.btn-close-panel {
+  position: absolute; right: 0; top: 0; width: 32px; height: 32px;
+  background: var(--card2); border: 1px solid var(--border); border-radius: 50%;
+  color: var(--muted); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px; transition: .2s;
 }
-.sh-left { flex:1; }
-.sh-status-lbl { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
-.sh-status-val { font-size:20px; font-weight:900; color:var(--green); }
+.btn-close-panel:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Trigger FAB when closed */
+.panel-trigger {
+  position: fixed; bottom: calc(var(--nav-h) + 24px); right: 24px;
+  width: 60px; height: 60px; background: var(--blue); border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  color: #fff; box-shadow: 0 8px 30px var(--glow); cursor: pointer; z-index: 140;
+}
+.panel-trigger.show { display: flex; }
+
+.status-hero { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.sh-status-val { font-size:22px; font-weight:900; color:var(--green); }
 .sh-status-val.off { color:var(--muted); }
-
-/* Toggle pill */
-.toggle-pill {
-  position:relative; width:68px; height:36px; cursor:pointer;
-  background:var(--border); border-radius:18px; transition:background .3s; flex-shrink:0;
-  border:none; outline:none; touch-action: manipulation;
-}
+.toggle-pill { position:relative; width:68px; height:36px; cursor:pointer; background:var(--border); border-radius:18px; transition:0.3s; border:none; }
 .toggle-pill.on { background:var(--green); }
-.toggle-pill::after {
-  content:''; position:absolute; top:4px; left:4px;
-  width:28px; height:28px; border-radius:50%; background:#fff;
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 2px 8px rgba(0,0,0,.3);
-}
+.toggle-pill::after { content:''; position:absolute; top:4px; left:4px; width:28px; height:28px; border-radius:50%; background:#fff; transition:0.3s; }
 .toggle-pill.on::after { transform:translateX(32px); }
 
 .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.stat-card {
-  background:var(--card2); border:1px solid var(--border); border-radius:13px; padding:13px 14px;
-}
-.sc-lbl { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:5px; }
+.stat-card { background:var(--card2); border:1px solid var(--border); border-radius:13px; padding:13px 14px; }
+.sc-lbl { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
 .sc-val { font-size:20px; font-weight:900; color:#E8ECFF; }
-.sc-val span { font-size:11px; font-weight:600; color:var(--muted); margin-left:2px; }
 
 .ride-req-list { display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; }
-@media(min-width:900px) { .ride-req-list { max-height:none; flex:1; overflow-y:auto; } }
-.ride-req-list::-webkit-scrollbar { display:none; }
-.no-rides {
-  text-align:center; padding:24px 16px; color:var(--muted);
-  font-size:13px; font-weight:500;
-}
-.no-rides-ico { font-size:28px; margin-bottom:8px; }
+@media(min-width:900px) { .ride-req-list { max-height:none; flex:1; } }
 
-.req-card {
-  background:var(--card2); border:1.5px solid var(--border); border-radius:14px; padding:14px 15px;
-  transition:border-color .2s, box-shadow .2s;
-  animation:slideIn .3s cubic-bezier(.4,0,.2,1);
-}
-@keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.req-card:hover { border-color:var(--blue2); box-shadow:0 4px 20px rgba(26,59,255,.15); }
-.req-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.req-rider { display:flex; align-items:center; gap:10px; }
-.req-av { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0; }
-.req-name { font-size:14px; font-weight:700; color:#E8ECFF; }
-.req-type { font-size:11px; color:var(--muted); margin-top:1px; }
-.req-fare { font-size:18px; font-weight:900; color:var(--green); }
-.req-route { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
-.req-point { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:500; color:#C0C8E8; }
-.rp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.rp-dot.pickup { background:var(--green); }
-.rp-dot.drop { background:var(--blue2); }
-.req-meta { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.req-chip {
-  font-size:10px; font-weight:700; color:var(--muted);
-  background:rgba(255,255,255,.05); border:1px solid var(--border);
-  padding:3px 9px; border-radius:20px;
-}
-.req-btns { display:flex; gap:8px; }
-.btn-decline {
-  flex:1; padding:11px; border-radius:10px;
-  background:rgba(255,68,68,.08); border:1.5px solid rgba(255,68,68,.2);
-  color:var(--red); font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
-.btn-decline:hover { background:rgba(255,68,68,.15); }
-.btn-accept {
-  flex:2; padding:11px; border-radius:10px; border:none;
-  background:linear-gradient(130deg,var(--blue2),var(--blue));
-  color:#fff; font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s;
-  box-shadow:0 4px 14px var(--glow); touch-action:manipulation;
-}
-.btn-accept:hover { opacity:.9; transform:translateY(-1px); }
-.btn-accept:active { transform:translateY(0); }
+/* ── PAGES ──────────────────────────────────────── */
+.page { flex:1; overflow-y:auto; display:none; flex-direction:column; }
+.page.show { display:flex; }
+#page-map { padding:0; position:relative; overflow:hidden; }
+#driverMap { width:100%; height:100%; }
 
-/* Active ride card */
-.active-ride-card {
-  background:linear-gradient(135deg,rgba(26,59,255,.18),rgba(74,108,255,.1));
-  border:1.5px solid rgba(74,108,255,.4); border-radius:16px; padding:18px;
-  display:none; flex-direction:column; gap:14px;
-}
-.active-ride-card.show { display:flex; }
-.ar-header { display:flex; justify-content:space-between; align-items:center; }
-.ar-status { font-size:11px; font-weight:700; color:var(--blue2); text-transform:uppercase; letter-spacing:.08em; }
-.ar-fare { font-size:24px; font-weight:900; color:#E8ECFF; }
-.ar-rider { display:flex; align-items:center; gap:12px; }
-.ar-av { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
-.ar-name { font-size:16px; font-weight:800; color:#E8ECFF; }
-.ar-dest { font-size:13px; color:var(--muted); margin-top:2px; }
-.ar-actions { display:flex; gap:8px; }
-.btn-complete {
-  flex:1; padding:13px; border-radius:11px; border:none;
-  background:var(--green); color:#0A0A12;
-  font-size:14px; font-weight:800; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
-.btn-complete:hover { opacity:.9; }
-.btn-cancel-active {
-  padding:13px 16px; border-radius:11px;
-  background:rgba(255,68,68,.1); border:1.5px solid rgba(255,68,68,.25);
-  color:var(--red); font-size:13px; font-weight:700; cursor:pointer;
-  font-family:'Outfit',sans-serif; transition:.15s; touch-action:manipulation;
-}
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 0; flex-shrink:0; }
+@media(min-width:900px){ .topbar { display:none; } }
 
-/* ── EARNINGS PAGE ──────────────────────────────── */
-.earn-hero {
-  background:linear-gradient(135deg,#0D1F99,#1A3BFF,#3559FF);
-  border-radius:20px; padding:24px 22px; position:relative; overflow:hidden;
-}
-.earn-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.06); }
-.earn-hero::after { content:''; position:absolute; bottom:-50px; left:-20px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.04); }
-.eh-lbl { font-size:12px; color:rgba(255,255,255,.6); font-weight:600; margin-bottom:4px; }
-.eh-amount { font-size:42px; font-weight:900; color:#fff; letter-spacing:-.8px; margin-bottom:16px; position:relative; z-index:1; }
-.eh-stats { display:flex; gap:20px; position:relative; z-index:1; }
-.eh-stat { background:rgba(255,255,255,.12); border-radius:10px; padding:10px 14px; }
-.eh-stat-val { font-size:18px; font-weight:800; color:#fff; }
-.eh-stat-lbl { font-size:10px; color:rgba(255,255,255,.6); margin-top:2px; font-weight:600; text-transform:uppercase; }
-
-.trip-hist-item {
-  background:var(--card); border:1px solid var(--border); border-radius:14px; padding:15px 16px;
-  display:flex; justify-content:space-between; align-items:flex-start; transition:.15s;
-}
-.trip-hist-item:hover { border-color:var(--border); background:var(--card2); }
-.th-type { font-size:14px; font-weight:700; color:#E8ECFF; }
-.th-dest { font-size:12px; color:var(--muted); margin-top:3px; }
-.th-date { font-size:11px; color:var(--muted); margin-top:5px; }
-.th-fare { font-size:16px; font-weight:800; color:var(--green); }
-.th-badge { font-size:10px; font-weight:700; color:var(--blue2); background:rgba(74,108,255,.12); padding:3px 9px; border-radius:20px; margin-top:5px; display:inline-block; }
-
-/* ── ACCOUNT PAGE ───────────────────────────────── */
-.prof-card {
-  background:linear-gradient(135deg,#0D1333,#1A2550,#243070);
-  border:1px solid rgba(74,108,255,.3); border-radius:20px; padding:22px 20px;
-  display:flex; align-items:center; gap:16px;
-  position:relative; overflow:hidden;
-}
-.prof-card::after { content:''; position:absolute; top:-30px; right:-30px; width:140px; height:140px; border-radius:50%; background:rgba(74,108,255,.08); }
-.pc-av { width:58px; height:58px; border-radius:16px; background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; flex-shrink:0; box-shadow:0 4px 16px var(--glow); }
-.pc-name { font-size:19px; font-weight:800; color:#E8ECFF; }
-.pc-email { font-size:12px; color:var(--muted); margin-top:3px; }
-.pc-tag { font-size:10px; font-weight:700; background:rgba(0,217,126,.15); color:var(--green); padding:3px 10px; border-radius:10px; margin-top:8px; display:inline-block; text-transform:uppercase; letter-spacing:.06em; }
-
-.acc-group-title { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin:4px 0 8px 2px; }
-.acc-group { background:var(--card); border-radius:16px; overflow:hidden; border:1px solid var(--border); }
-.acc-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px; border-bottom:1px solid var(--border);
-  cursor:pointer; transition:.15s; touch-action:manipulation;
-}
-.acc-row:last-child { border:none; }
-.acc-row:hover { background:rgba(255,255,255,.03); }
-.acc-row:active { background:rgba(255,255,255,.06); }
-.arl { display:flex; align-items:center; gap:12px; }
-.ar-icon {
-  width:32px; height:32px; border-radius:9px;
-  background:rgba(74,108,255,.12); display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.ar-icon.red-bg { background:rgba(255,68,68,.1); }
-.ar-label { font-size:14px; font-weight:500; color:#E8ECFF; }
-.ar-arrow { color:var(--muted); font-size:15px; }
-
-/* ── BOTTOM NAV ─────────────────────────────────── */
 .bnav {
-  position:fixed; bottom:0; left:0; right:0;
-  height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  background:rgba(22,27,38,.97); backdrop-filter:blur(16px);
-  border-top:1px solid var(--border);
-  display:flex; justify-content:space-around; align-items:flex-start; padding-top:10px;
-  z-index:50;
+  position:fixed; bottom:0; left:0; right:0; height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
+  background:rgba(22,27,38,.97); backdrop-filter:blur(16px); border-top:1px solid var(--border);
+  display:flex; justify-content:space-around; align-items:flex-start; padding-top:10px; z-index:100;
 }
 @media(min-width:900px){ .bnav { display:none; } }
-.bni { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10px; font-weight:600; cursor:pointer; transition:.15s; padding:4px 16px; position:relative; touch-action:manipulation; }
+.bni { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10px; font-weight:600; cursor:pointer; }
 .bni.act { color:var(--blue2); }
-.bni.act svg path,.bni.act svg circle,.bni.act svg rect,.bni.act svg polyline,.bni.act svg line { stroke:var(--blue2); }
-.bni-dot { position:absolute; top:2px; right:10px; width:7px; height:7px; border-radius:50%; background:var(--red); border:2px solid var(--bg); display:none; }
-.bni-dot.show { display:block; }
 
-/* ── TOAST ──────────────────────────────────────── */
-.toast {
-  position:fixed; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,16px) + 12px); left:50%;
-  transform:translateX(-50%) translateY(10px);
-  background:#E8ECFF; color:var(--ink); padding:11px 22px; border-radius:30px;
-  font-size:13px; font-weight:700; opacity:0; pointer-events:none;
-  transition:.22s; z-index:700; white-space:nowrap;
-  box-shadow:0 4px 24px rgba(0,0,0,.4);
-}
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-@media(min-width:900px){ .toast { bottom:28px; } }
-
-/* ── MODAL ──────────────────────────────────────── */
-.mbg { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:500; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(6px); }
-@media(min-width:900px){ .mbg { align-items:center; } }
-.mbg.show { display:flex; }
-.modal {
-  background:var(--card); border-radius:24px 24px 0 0; padding:26px 24px calc(36px + env(safe-area-inset-bottom,0px));
-  width:100%; max-width:420px; animation:sheetUp .28s cubic-bezier(.4,0,.2,1);
-  border:1px solid var(--border);
-}
-@media(min-width:900px){ .modal { border-radius:20px; padding-bottom:36px; } }
-@keyframes sheetUp { from { transform:translateY(60px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-.mh { font-size:19px; font-weight:800; color:#E8ECFF; margin-bottom:16px; }
-.mrow { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
-.mrow:last-of-type { border:none; }
-.mrl { font-size:13px; color:var(--muted); }
-.mrv { font-size:13px; font-weight:600; color:#E8ECFF; max-width:200px; text-align:right; }
-.mbtns { display:flex; gap:10px; margin-top:18px; }
-.mcancel { flex:1; padding:13px; border:1.5px solid var(--border); background:transparent; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; color:#E8ECFF; transition:.15s; touch-action:manipulation; }
-.mcancel:hover { background:rgba(255,255,255,.05); }
-.mok { flex:2; padding:13px; border:none; background:linear-gradient(130deg,var(--blue2),var(--blue)); color:#fff; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 14px var(--glow); touch-action:manipulation; }
-
-/* Input */
-.t-input { width:100%; padding:13px 15px; border-radius:11px; border:1.5px solid var(--border); background:var(--card2); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; color:#E8ECFF; outline:none; transition:.2s; }
-.t-input:focus { border-color:var(--blue2); }
-.t-input::placeholder { color:var(--muted); }
-.slabel { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:8px; display:block; }
-.input-wrap { margin-bottom:14px; }
-
-.empty { text-align:center; padding:40px 20px; color:var(--muted); }
-.empty-ico { font-size:32px; margin-bottom:10px; }
+.toast { position:fixed; bottom:110px; left:50%; transform:translateX(-50%); background:#E8ECFF; color:var(--ink); padding:12px 24px; border-radius:30px; font-size:13px; font-weight:700; opacity:0; transition:.3s; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+.toast.show { opacity:1; }
 </style>
 </head>
 <body>
 
 <div class="init-loader" id="initLoader">
   <div class="loader-ring"></div>
-  <div class="loader-brand">VynixRide Driver</div>
-  <div class="loader-sub">Loading your dashboard…</div>
+  <div class="loader-brand" style="font-weight:900; color:var(--blue)">VynixRide</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<div class="mbg" id="acceptModal">
-  <div class="modal">
-    <div class="mh">Accept Ride?</div>
-    <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
-    <div class="mrow"><span class="mrl">Ride Type</span><b class="mrv" id="am-type">—</b></div>
-    <div class="mrow"><span class="mrl">Pickup</span><b class="mrv" id="am-pickup">—</b></div>
-    <div class="mrow"><span class="mrl">Destination</span><b class="mrv" id="am-dest">—</b></div>
-    <div class="mrow"><span class="mrl">Distance</span><b class="mrv" id="am-dist">—</b></div>
-    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare">—</b></div>
-    <div class="mbtns">
-      <button class="mcancel" onclick="closeAcceptModal()">Cancel</button>
-      <button class="mok" id="confirmAcceptBtn" onclick="confirmAccept()">Accept Ride</button>
-    </div>
-  </div>
-</div>
-
-<div class="mbg" id="vehicleModal">
-  <div class="modal">
-    <div class="mh">Vehicle Details</div>
-    <div class="input-wrap">
-      <span class="slabel">Vehicle Make & Model</span>
-      <input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla">
-    </div>
-    <div class="input-wrap">
-      <span class="slabel">Licence Plate</span>
-      <input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase">
-    </div>
-    <div class="input-wrap">
-      <span class="slabel">Ride Type You Drive</span>
-      <select id="v-type" class="t-input">
-        <option value="VynixGo">VynixGo (Compact · Economy)</option>
-        <option value="VynixComfort">VynixComfort (Newer cars · Legroom)</option>
-        <option value="VynixXL">VynixXL (SUVs & Vans · 6 seats)</option>
-      </select>
-    </div>
-    <div class="mbtns">
-      <button class="mok" onclick="saveVehicle()" style="flex:1">Save & Continue</button>
-    </div>
-  </div>
+<div class="panel-trigger" id="panelTrigger" onclick="toggleStatusPanel(true)">
+  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
 </div>
 
 <div class="shell">
   <aside class="sidebar" id="mainSidebar">
     <div class="s-logo">
       <div class="s-logo-mark">VX</div>
-      <div>
-        <div class="s-logo-txt">VynixRide</div>
-        <div class="s-logo-badge">Driver</div>
-      </div>
+      <div class="s-logo-txt">VynixRide</div>
     </div>
-
-    <div class="snl act" data-page="map" onclick="switchPage('map')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+    <div class="snl act" onclick="switchPage('map')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
       <span class="s-ntxt">Live Rides</span>
-      <span class="s-badge" id="sb-req-count"></span>
     </div>
-    <div class="snl" data-page="earnings" onclick="switchPage('earnings')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <div class="snl" onclick="switchPage('earnings')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       <span class="s-ntxt">Earnings</span>
     </div>
-    <div class="snl" data-page="account" onclick="switchPage('account')">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="s-ntxt">Account</span>
-    </div>
-
     <div class="s-spacer"></div>
-
-    <div class="s-status-row" id="sidebarStatusRow" onclick="toggleOnline()">
+    <div class="s-status-row" onclick="toggleOnline()">
       <div class="s-status-dot" id="sidebarDot"></div>
-      <span class="s-status-txt" id="sidebarStatusTxt">Online</span>
-    </div>
-
-    <div class="s-user" onclick="switchPage('account')">
-      <div class="s-av" id="sbAv">?</div>
-      <div class="s-user-info">
-        <div class="s-uname" id="sbName">Driver</div>
-        <div class="s-uemail" id="sbEmail">—</div>
-      </div>
+      <span class="s-status-txt" id="sidebarStatusTxt">Offline</span>
     </div>
   </aside>
 
   <div class="main">
     <div class="topbar">
-      <div class="tb-logo">
-        <div class="tb-mark">VX</div>
-        <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
-      </div>
-      <div class="tb-right">
-        <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
-          <div class="ot-dot"></div>
-          <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
-        </div>
-        <div class="tb-av" id="tbAv">?</div>
-      </div>
+      <div class="tb-logo"><div class="s-logo-mark" style="width:34px; height:34px;">VX</div></div>
+      <div class="sh-status-val" style="font-size:14px; color:var(--muted)" id="mobileStatus">Offline</div>
     </div>
 
-    <div class="page show" id="page-map" style="padding:0; position:relative; overflow:hidden;">
+    <div class="page show" id="page-map">
       <div id="driverMap"></div>
     </div>
 
-    <div class="page" id="page-earnings">
-      <div>
-        <div class="ph">Earnings</div>
-        <div class="ph-sub">Your income summary</div>
-      </div>
-      <div class="earn-hero">
-        <div class="eh-lbl">Total Earnings</div>
-        <div class="eh-amount" id="totalEarnings">R 0.00</div>
-        <div class="eh-stats">
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="totalTrips">0</div>
-            <div class="eh-stat-lbl">Trips</div>
-          </div>
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="todayEarnings">R0</div>
-            <div class="eh-stat-lbl">Today</div>
-          </div>
-          <div class="eh-stat">
-            <div class="eh-stat-val" id="avgFare">R0</div>
-            <div class="eh-stat-lbl">Avg/trip</div>
-          </div>
-        </div>
-      </div>
-      <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase;">Trip History</div>
-      <div id="driverTripList"><div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div></div>
+    <div class="page" id="page-earnings" style="padding:40px;">
+       <h1 style="font-size:32px; font-weight:900; margin-bottom:8px;">Earnings</h1>
+       <p style="color:var(--muted)">Your financial summary will appear here.</p>
     </div>
 
-    <div class="page" id="page-account">
-      <div>
-        <div class="ph">Account</div>
+    <div class="map-overlay-panel show-panel" id="mapPanel">
+      <div class="panel-header">
+        <div class="sheet-handle"></div>
+        <div class="btn-close-panel" onclick="toggleStatusPanel(false)">&times;</div>
       </div>
-      <div class="prof-card">
-        <div class="pc-av" id="profAv">?</div>
-        <div>
-          <div class="pc-name" id="profName">Driver</div>
-          <div class="pc-email" id="profEmail">—</div>
-          <div class="pc-tag">🚗 VynixRide Driver</div>
-        </div>
-      </div>
-
-      <div class="acc-group-title">Vehicle</div>
-      <div class="acc-group">
-        <div class="acc-row" onclick="openVehicleModal()">
-          <div class="arl">
-            <div class="ar-icon"><svg width="15" height="15" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-            <div>
-              <div class="ar-label">Vehicle Details</div>
-              <div style="font-size:12px; color:var(--muted); margin-top:2px;" id="vehicleSummary">Not set up</div>
-            </div>
-          </div>
-          <div class="ar-arrow">›</div>
-        </div>
-      </div>
-
-      <div class="acc-group-title">App</div>
-      <div class="acc-group">
-        <div class="acc-row" onclick="window.open('index.html','_blank')">
-          <div class="arl">
-            <div class="ar-icon"><svg width="15" height="15" fill="none" stroke="var(--blue2)" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
-            <div class="ar-label">Open Rider App</div>
-          </div>
-          <div class="ar-arrow">›</div>
-        </div>
-      </div>
-      <div style="text-align:center; font-size:11px; color:var(--muted); margin-top:8px;">VynixRide Driver v1.0 · South Africa 🇿🇦</div>
-    </div>
-
-    <div class="map-overlay-panel" id="mapPanel">
-      <div class="sheet-handle"></div>
+      
       <div class="status-hero">
         <div class="sh-left">
-          <div class="sh-status-lbl">Driver Status</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:800; letter-spacing:1px; margin-bottom:2px; text-transform:uppercase;">Status</div>
           <div class="sh-status-val off" id="statusVal">Offline</div>
         </div>
         <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
       </div>
 
-      <div class="active-ride-card" id="activeRideCard">
-        <div class="ar-header">
-          <div class="ar-status">Active Ride</div>
-          <div class="ar-fare" id="ar-fare">—</div>
-        </div>
-        <div class="ar-rider">
-          <div class="ar-av" id="ar-av">?</div>
-          <div>
-            <div class="ar-name" id="ar-name">—</div>
-            <div class="ar-dest" id="ar-dest">—</div>
-          </div>
-        </div>
-        <div class="stat-row">
-          <div class="stat-card"><div class="sc-lbl">PIN</div><div class="sc-val" id="ar-pin">—</div></div>
-          <div class="stat-card"><div class="sc-lbl">Type</div><div class="sc-val" id="ar-type" style="font-size:13px">—</div></div>
-          <div class="stat-card"><div class="sc-lbl">Fare</div><div class="sc-val" id="ar-fare2" style="color:var(--green)">—</div></div>
-        </div>
-        <div class="ar-actions">
-          <button class="btn-cancel-active" onclick="cancelActiveRide()">Cancel</button>
-          <button class="btn-complete" onclick="completeRide()">✓ Complete Ride</button>
-        </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="sc-lbl">Today</div><div class="sc-val">0</div></div>
+        <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val">R0</div></div>
+        <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val">0h</div></div>
       </div>
 
-      <div class="stat-row" id="todayStats">
-        <div class="stat-card"><div class="sc-lbl">Today</div><div class="sc-val" id="stat-rides">0 <span>rides</span></div></div>
-        <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
-        <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
-      </div>
-
-      <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; flex-shrink:0;" id="reqLabel">Incoming Requests</div>
+      <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-top:10px;">Requests</div>
       <div class="ride-req-list" id="rideReqList">
-        <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
+        <div style="text-align:center; padding:30px; color:var(--muted); font-size:13px;">Go online to see ride requests</div>
       </div>
     </div>
-
   </div>
 
   <nav class="bnav">
-    <div class="bni act" id="bn-map" onclick="switchPage('map')">
-      <div class="bni-dot" id="bn-map-dot"></div>
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Rides
-    </div>
-    <div class="bni" id="bn-earnings" onclick="switchPage('earnings')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      Earnings
-    </div>
-    <div class="bni" id="bn-account" onclick="switchPage('account')">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Account
-    </div>
+    <div class="bni act" onclick="switchPage('map')">Rides</div>
+    <div class="bni" onclick="switchPage('earnings')">Earnings</div>
   </nav>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// ── SAME FIREBASE PROJECT as rider app ──────────────────────────────
 const app = initializeApp({
   apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
   authDomain: "fire-b-a8878.firebaseapp.com",
   databaseURL: "https://fire-b-a8878.firebaseio.com",
-  projectId: "fire-b-a8878",
-  storageBucket: "fire-b-a8878.firebasestorage.app",
-  messagingSenderId: "658673187627",
-  appId: "1:658673187627:web:32699cbc33e85f4bafa36e"
+  projectId: "fire-b-a8878"
 });
-
 const db = getDatabase(app);
 
-// Mocking User to bypass Google Auth
-let cu = {
-  uid: "mock_driver_123",
-  displayName: "Test Driver",
-  email: "driver@vynixride.com"
-};
-
 let isOnline = false;
-let activeRideId = null;
-let pendingAcceptId = null;
-let pendingAcceptData = null;
-let onlineStartTime = null;
-let statsToday = { rides: 0, earned: 0 };
-let rideRequestsUnsub = null;
 
-// ── APP INITIALIZATION ON LOAD ───────────────────────────────────────
 window.onload = () => {
   document.getElementById('initLoader').classList.add('hide');
-  document.getElementById('mapPanel').classList.add('show-panel');
-  updateUI(cu);
-  loadTodayStats();
-  loadTripHistory();
   initMap();
-  watchLocation();
-  listenActiveRide();
-  loadVehicleInfo();
 };
 
-// ── MAP ──────────────────────────────────────────────────────────────
-const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
-mapboxgl.accessToken = TK;
-const DLNG = 28.9934, DLAT = -24.1991;
-let driverMap, driverMarker;
+window.toggleStatusPanel = (show) => {
+  const panel = document.getElementById('mapPanel');
+  const trigger = document.getElementById('panelTrigger');
+  if(show) {
+    panel.classList.add('show-panel');
+    trigger.classList.remove('show');
+  } else {
+    panel.classList.remove('show-panel');
+    trigger.classList.add('show');
+  }
+};
 
+let driverMap;
 function initMap() {
+  mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
   driverMap = new mapboxgl.Map({
     container: 'driverMap',
     style: 'mapbox://styles/mapbox/dark-v11',
-    center: [DLNG, DLAT], zoom: 14,
-    attributionControl: false
+    center: [28.99, -24.19], zoom: 14, attributionControl: false
   });
-  driverMap.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
-  const el = document.createElement('div');
-  el.style.cssText = 'width:22px;height:22px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 12px rgba(26,59,255,.5);';
-  driverMarker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([DLNG, DLAT]).addTo(driverMap);
-}
-
-function updateDriverLocation(lat, lng) {
-  driverMarker?.setLngLat([lng, lat]);
-  if (cu && isOnline) {
-    set(ref(db, `active_drivers/${cu.uid}`), {
-      lat, lng, name: cu.displayName || 'Driver', uid: cu.uid,
-      online: true, timestamp: Date.now()
-    }).catch(() => {});
-  }
-}
-
-function watchLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.watchPosition(pos => {
-    const { latitude: la, longitude: lo } = pos.coords;
-    updateDriverLocation(la, lo);
-    driverMap?.flyTo({ center: [lo, la], zoom: 14, speed: 0.8 });
-  }, () => {}, { enableHighAccuracy: true });
-}
-
-
-function ini2(n) { return (n || '?').split(' ').map(x => x[0]).join('').substring(0, 2).toUpperCase(); }
-
-function updateUI(u) {
-  const n = u.displayName || 'Driver', e = u.email, i = ini2(n);
-  ['sbAv','tbAv','profAv'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = i; });
-  ['sbName','profName'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = n; });
-  ['sbEmail','profEmail'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = e; });
-}
-
-// ── ONLINE TOGGLE ────────────────────────────────────────────────────
-async function goOnline() {
-  isOnline = true;
-  onlineStartTime = Date.now();
-  setOnlineUI(true);
-  if (!cu) return;
-  navigator.geolocation?.getCurrentPosition(pos => {
-    updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
-  }, () => { updateDriverLocation(DLAT, DLNG); });
-  listenRideRequests();
-  showToast('You are now Online 🟢');
-}
-
-async function goOffline() {
-  isOnline = false;
-  setOnlineUI(false);
-  if (rideRequestsUnsub) { rideRequestsUnsub(); rideRequestsUnsub = null; }
-  if (cu) await remove(ref(db, `active_drivers/${cu.uid}`)).catch(() => {});
-  document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
-  showToast('You are now Offline ⚫');
-  updateHoursOnline();
 }
 
 window.toggleOnline = function() {
-  if (!cu) { showToast('Please sign in first'); return; }
-  if (activeRideId) { showToast('Complete your current ride first'); return; }
-  if (isOnline) goOffline(); else goOnline();
-};
-
-function setOnlineUI(on) {
-  const bt = document.getElementById('bigToggle');
-  bt.classList.toggle('on', on);
+  isOnline = !isOnline;
+  const btn = document.getElementById('bigToggle');
   const sv = document.getElementById('statusVal');
-  sv.textContent = on ? 'Online' : 'Offline';
-  sv.classList.toggle('off', !on);
   const sd = document.getElementById('sidebarDot');
-  sd.classList.toggle('off', !on);
-  document.getElementById('sidebarStatusTxt').textContent = on ? 'Online' : 'Offline';
-  const sRow = document.getElementById('sidebarStatusRow');
-  sRow.classList.toggle('off', !on);
-  const mt = document.getElementById('mobileToggle');
-  mt.classList.toggle('on', on);
-  document.getElementById('mobileToggleLbl').textContent = on ? 'Online' : 'Offline';
-}
+  const st = document.getElementById('sidebarStatusTxt');
+  const ms = document.getElementById('mobileStatus');
 
-function updateHoursOnline() {
-  if (!onlineStartTime) return;
-  const hrs = ((Date.now() - onlineStartTime) / 3600000).toFixed(1);
-  document.getElementById('stat-hrs').innerHTML = hrs + '<span>h</span>';
-}
-
-// ── RIDE REQUESTS LISTENER ───────────────────────────────────────────
-function listenRideRequests() {
-  if (!cu) return;
-  const reqRef = ref(db, 'ride_requests');
-  rideRequestsUnsub = onValue(reqRef, snap => {
-    const data = snap.val() || {};
-    const pending = Object.entries(data).filter(([, v]) => v.status === 'pending');
-    renderRideRequests(pending);
-    const cnt = pending.length;
-    const badge = document.getElementById('sb-req-count');
-    badge.textContent = cnt > 0 ? cnt : '';
-    const dot = document.getElementById('bn-map-dot');
-    dot.classList.toggle('show', cnt > 0);
-  });
-}
-
-function renderRideRequests(list) {
-  const el = document.getElementById('rideReqList');
-  if (activeRideId) {
-    document.getElementById('reqLabel').style.display = 'none';
-    el.style.display = 'none';
-    document.getElementById('todayStats').style.display = 'none';
-    return;
-  }
-  document.getElementById('reqLabel').style.display = '';
-  el.style.display = '';
-  document.getElementById('todayStats').style.display = '';
-  if (!list.length) {
-    el.innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';
-    return;
-  }
-  el.innerHTML = list.map(([id, r]) => `
-    <div class="req-card" id="req-${id}">
-      <div class="req-top">
-        <div class="req-rider">
-          <div class="req-av">${ini2(r.riderName || 'R')}</div>
-          <div>
-            <div class="req-name">${r.riderName || 'Rider'}</div>
-            <div class="req-type">${r.rideType || 'VynixGo'}</div>
-          </div>
-        </div>
-        <div class="req-fare">R ${parseFloat(r.fare || 0).toFixed(2)}</div>
-      </div>
-      <div class="req-route">
-        <div class="req-point"><div class="rp-dot pickup"></div>${(r.pickup || 'Current Location').substring(0, 40)}</div>
-        <div class="req-point"><div class="rp-dot drop"></div>${(r.destination || '—').substring(0, 40)}</div>
-      </div>
-      <div class="req-meta">
-        <span class="req-chip">📍 ${r.distKm ? r.distKm.toFixed(1) + ' km' : '—'}</span>
-        <span class="req-chip">⏱ ${r.tripMins ? r.tripMins + ' min trip' : '—'}</span>
-        <span class="req-chip">👤 ${r.capacity || 4} seats</span>
-      </div>
-      <div class="req-btns">
-        <button class="btn-decline" onclick="declineRide('${id}')">Decline</button>
-        <button class="btn-accept" onclick="openAcceptModal('${id}')">Accept Ride</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ── ACCEPT MODAL ─────────────────────────────────────────────────────
-window.openAcceptModal = function(id) {
-  if (!isOnline) { showToast('Go online first'); return; }
-  get(ref(db, `ride_requests/${id}`)).then(snap => {
-    if (!snap.exists() || snap.val().status !== 'pending') {
-      showToast('Ride already taken'); return;
-    }
-    const r = snap.val();
-    pendingAcceptId = id;
-    pendingAcceptData = r;
-    document.getElementById('am-rider').textContent = r.riderName || 'Rider';
-    document.getElementById('am-type').textContent = r.rideType || 'VynixGo';
-    document.getElementById('am-pickup').textContent = (r.pickup || 'Current Location').substring(0, 50);
-    document.getElementById('am-dest').textContent = (r.destination || '—').substring(0, 50);
-    document.getElementById('am-dist').textContent = r.distKm ? r.distKm.toFixed(1) + ' km' : '—';
-    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare || 0).toFixed(2)}`;
-    document.getElementById('acceptModal').classList.add('show');
-  });
+  btn.classList.toggle('on', isOnline);
+  sv.textContent = isOnline ? 'Online' : 'Offline';
+  sv.classList.toggle('off', !isOnline);
+  sd.classList.toggle('off', !isOnline);
+  st.textContent = isOnline ? 'Online' : 'Offline';
+  ms.textContent = isOnline ? 'Online' : 'Offline';
+  ms.style.color = isOnline ? 'var(--green)' : 'var(--muted)';
+  
+  showToast(isOnline ? "You are now Online 🟢" : "You are now Offline ⚫");
 };
 
-window.closeAcceptModal = function() {
-  document.getElementById('acceptModal').classList.remove('show');
-  pendingAcceptId = null; pendingAcceptData = null;
+window.switchPage = (name) => {
+  document.getElementById('page-map').classList.toggle('show', name === 'map');
+  document.getElementById('page-earnings').classList.toggle('show', name === 'earnings');
+  if(name === 'map') setTimeout(() => driverMap.resize(), 100);
 };
 
-window.confirmAccept = function() {
-  if (!pendingAcceptId || !cu) return;
-  const id = pendingAcceptId;
-  const r = pendingAcceptData;
-  const reqRef = ref(db, `ride_requests/${id}`);
-
-  runTransaction(reqRef, current => {
-    if (!current || current.status !== 'pending') return;
-    return { ...current, status: 'accepted', driverId: cu.uid, driverName: cu.displayName || 'Driver', acceptedAt: Date.now() };
-  }).then(result => {
-    if (!result.committed) {
-      showToast('Ride already accepted by another driver');
-      window.closeAcceptModal();
-      return;
-    }
-    activeRideId = id;
-    window.closeAcceptModal();
-    showActiveRide(r);
-    listenActiveRide();
-    showToast('Ride accepted! 🎉');
-  }).catch(() => { showToast('Error accepting ride'); });
-};
-
-window.declineRide = function(id) {
-  const el = document.getElementById(`req-${id}`);
-  if (el) el.remove();
-};
-
-// ── ACTIVE RIDE ───────────────────────────────────────────────────────
-function showActiveRide(r) {
-  const card = document.getElementById('activeRideCard');
-  card.classList.add('show');
-  document.getElementById('ar-av').textContent = ini2(r.riderName || 'R');
-  document.getElementById('ar-name').textContent = r.riderName || 'Rider';
-  document.getElementById('ar-dest').textContent = (r.destination || '—').substring(0, 40);
-  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare || 0).toFixed(2)}`;
-  document.getElementById('ar-fare2').textContent = `R${parseFloat(r.fare || 0).toFixed(0)}`;
-  document.getElementById('ar-pin').textContent = r.securityPin || '—';
-  document.getElementById('ar-type').textContent = r.rideType || 'VynixGo';
-  document.getElementById('reqLabel').style.display = 'none';
-  document.getElementById('rideReqList').style.display = 'none';
-  document.getElementById('todayStats').style.display = 'none';
-}
-
-function listenActiveRide() {
-  if (!cu) return;
-  get(ref(db, 'ride_requests')).then(snap => {
-    const all = snap.val() || {};
-    const mine = Object.entries(all).find(([, v]) => v.status === 'accepted' && v.driverId === cu.uid);
-    if (mine) {
-      const [id, r] = mine;
-      activeRideId = id;
-      showActiveRide(r);
-    }
-  });
-}
-
-window.completeRide = async function() {
-  if (!activeRideId || !cu) return;
-  try {
-    const snap = await get(ref(db, `ride_requests/${activeRideId}`));
-    const r = snap.val() || {};
-    const fare = parseFloat(r.fare || 0);
-
-    await push(ref(db, `drivers/${cu.uid}/trips`), {
-      rideType: r.rideType || 'VynixGo',
-      riderName: r.riderName || 'Rider',
-      destination: r.destination || '—',
-      fare, status: 'Completed', date: Date.now()
-    });
-
-    await remove(ref(db, `ride_requests/${activeRideId}`));
-
-    const eRef = ref(db, `drivers/${cu.uid}/earnings`);
-    const eSnap = await get(eRef);
-    const curr = eSnap.val() || { total: 0, trips: 0 };
-    await set(eRef, { total: curr.total + fare, trips: curr.trips + 1 });
-
-    statsToday.rides++;
-    statsToday.earned += fare;
-    document.getElementById('stat-rides').innerHTML = statsToday.rides + ' <span>rides</span>';
-    document.getElementById('stat-earn').textContent = 'R' + statsToday.earned.toFixed(0);
-
-    activeRideId = null;
-    document.getElementById('activeRideCard').classList.remove('show');
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
-    document.getElementById('todayStats').style.display = '';
-    loadTripHistory();
-    loadTodayStats();
-    showToast('Ride completed! +R' + fare.toFixed(2));
-  } catch (e) { showToast('Error completing ride'); }
-};
-
-window.cancelActiveRide = async function() {
-  if (!activeRideId || !cu) return;
-  try {
-    await update(ref(db, `ride_requests/${activeRideId}`), {
-      status: 'pending', driverId: null, driverName: null, acceptedAt: null
-    });
-    activeRideId = null;
-    document.getElementById('activeRideCard').classList.remove('show');
-    document.getElementById('reqLabel').style.display = '';
-    document.getElementById('rideReqList').style.display = '';
-    document.getElementById('todayStats').style.display = '';
-    showToast('Ride cancelled — request returned to queue');
-  } catch (e) { showToast('Error cancelling'); }
-};
-
-// ── EARNINGS / TRIPS ──────────────────────────────────────────────────
-async function loadTodayStats() {
-  if (!cu) return;
-  try {
-    const snap = await get(ref(db, `drivers/${cu.uid}/earnings`));
-    const d = snap.val() || { total: 0, trips: 0 };
-    document.getElementById('totalEarnings').textContent = `R ${d.total.toFixed(2)}`;
-    document.getElementById('totalTrips').textContent = d.trips;
-    document.getElementById('avgFare').textContent = d.trips ? 'R' + (d.total / d.trips).toFixed(0) : 'R0';
-    document.getElementById('todayEarnings').textContent = 'R' + (d.total || 0).toFixed(0);
-    document.getElementById('stat-earn').textContent = 'R' + statsToday.earned.toFixed(0);
-  } catch (e) {}
-}
-
-function loadTripHistory() {
-  if (!cu) return;
-  onValue(ref(db, `drivers/${cu.uid}/trips`), snap => {
-    const list = Object.values(snap.val() || {}).reverse();
-    const el = document.getElementById('driverTripList');
-    if (!list.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-ico">💰</div><p>No completed trips yet.</p></div>';
-      return;
-    }
-    el.innerHTML = list.map(t => `
-      <div class="trip-hist-item">
-        <div>
-          <div class="th-type">${t.rideType || 'VynixGo'}</div>
-          <div class="th-dest">→ ${(t.destination || '—').substring(0, 35)}</div>
-          <div class="th-date">${t.date ? new Date(t.date).toLocaleString('en-ZA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          <span class="th-badge">✓ Completed</span>
-        </div>
-        <div style="text-align:right; flex-shrink:0">
-          <div class="th-fare">+R ${parseFloat(t.fare || 0).toFixed(2)}</div>
-        </div>
-      </div>
-    `).join('');
-    loadTodayStats();
-  });
-}
-
-// ── VEHICLE ───────────────────────────────────────────────────────────
-function loadVehicleInfo() {
-  if (!cu) return;
-  get(ref(db, `drivers/${cu.uid}/vehicle`)).then(snap => {
-    const v = snap.val();
-    if (v) {
-      document.getElementById('vehicleSummary').textContent = `${v.car} · ${v.plate} · ${v.type}`;
-      document.getElementById('v-car').value = v.car || '';
-      document.getElementById('v-plate').value = v.plate || '';
-      document.getElementById('v-type').value = v.type || 'VynixGo';
-    } else {
-      setTimeout(() => document.getElementById('vehicleModal').classList.add('show'), 600);
-    }
-  });
-}
-
-window.openVehicleModal = function() { document.getElementById('vehicleModal').classList.add('show'); };
-window.saveVehicle = async function() {
-  if (!cu) return;
-  const car = document.getElementById('v-car').value.trim();
-  const plate = document.getElementById('v-plate').value.trim().toUpperCase();
-  const type = document.getElementById('v-type').value;
-  if (!car || !plate) { showToast('Please fill in all vehicle details'); return; }
-  await set(ref(db, `drivers/${cu.uid}/vehicle`), { car, plate, type });
-  document.getElementById('vehicleSummary').textContent = `${car} · ${plate} · ${type}`;
-  document.getElementById('vehicleModal').classList.remove('show');
-  showToast('Vehicle details saved');
-};
-
-// ── PAGE NAV ──────────────────────────────────────────────────────────
-window.switchPage = function(name) {
-  ['map', 'earnings', 'account'].forEach(p => {
-    const pg = document.getElementById(`page-${p}`);
-    if (pg) pg.classList.toggle('show', p === name);
-    const bn = document.getElementById(`bn-${p}`);
-    if (bn) bn.classList.toggle('act', p === name);
-    const snl = document.querySelector(`.snl[data-page="${p}"]`);
-    if (snl) snl.classList.toggle('act', p === name);
-  });
-  if (name === 'map') setTimeout(() => driverMap?.resize(), 40);
-};
-
-// ── TOAST ─────────────────────────────────────────────────────────────
-window.showToast = function(msg) {
+window.showToast = (msg) => {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 };
-
 </script>
 </body>
 </html>
