@@ -587,7 +587,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const app = initializeApp({
@@ -615,6 +615,13 @@ let rideRequestsUnsub = null;
 let panelExpanded = false;
 
 // ── INIT & AUTH ────────────────────────────────────────────────────────
+
+// Handle any returning redirect flows
+getRedirectResult(auth).catch((error) => {
+  console.error("Redirect Auth Error:", error);
+  showToast("Login failed: " + error.message);
+});
+
 onAuthStateChanged(auth, (user) => {
   document.getElementById('initLoader').classList.add('hide');
   const overlay = document.getElementById('authOverlay');
@@ -636,15 +643,34 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-document.getElementById('btnGoogleSignIn').addEventListener('click', () => {
-  // Try popup first. If aggressive browser blocker stops it, instantly fallback to redirect flow.
-  signInWithPopup(auth, provider).catch(error => {
-    if (error.code === 'auth/popup-blocked') {
+document.getElementById('btnGoogleSignIn').addEventListener('click', async () => {
+  const btn = document.getElementById('btnGoogleSignIn');
+  const originalText = btn.innerHTML;
+  
+  // Visual feedback to prove the button is responding
+  btn.style.opacity = '0.7';
+  btn.style.pointerEvents = 'none';
+  btn.textContent = 'Connecting...';
+
+  try {
+    // We strictly use Popup first for best desktop/PWA UX
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    console.error("Popup Auth Error:", error);
+    
+    // If blocked or trapped in strict iframe, gracefully degrade to Redirect
+    if (error.code === 'auth/popup-blocked' || error.message.toLowerCase().includes('cross-origin')) {
+      showToast('Popup blocked by browser. Using redirect instead...');
       signInWithRedirect(auth, provider);
     } else {
-      showToast('Login failed: ' + error.message);
+      // Something else failed (e.g. invalid domains, closed early)
+      showToast('Login failed: ' + error.code);
+      // Reset button
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      btn.innerHTML = originalText;
     }
-  });
+  }
 });
 
 window.doSignOut = () => {
