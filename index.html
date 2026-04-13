@@ -587,7 +587,7 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, set, get, push, update, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const app = initializeApp({
@@ -603,7 +603,7 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-let cu = null; // Replaced mock user with real authenticated user
+let cu = null; 
 
 let isOnline = false;
 let activeRideId = null;
@@ -625,7 +625,7 @@ onAuthStateChanged(auth, (user) => {
     updateUI(cu);
     loadTodayStats();
     loadTripHistory();
-    if (!driverMap) initMap(); // Ensure map only initializes once
+    if (!driverMap) initMap();
     watchLocation();
     listenActiveRide();
     loadVehicleInfo();
@@ -637,13 +637,18 @@ onAuthStateChanged(auth, (user) => {
 });
 
 document.getElementById('btnGoogleSignIn').addEventListener('click', () => {
+  // Try popup first. If aggressive browser blocker stops it, instantly fallback to redirect flow.
   signInWithPopup(auth, provider).catch(error => {
-    showToast('Login failed: ' + error.message);
+    if (error.code === 'auth/popup-blocked') {
+      signInWithRedirect(auth, provider);
+    } else {
+      showToast('Login failed: ' + error.message);
+    }
   });
 });
 
 window.doSignOut = () => {
-  if (isOnline) goOffline(); // Safe disconnect
+  if (isOnline) goOffline();
   signOut(auth).then(() => {
     showToast('Signed out successfully');
   }).catch(() => showToast('Error signing out'));
