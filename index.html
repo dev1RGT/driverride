@@ -492,6 +492,10 @@ html, body { height:100%; overflow:hidden; font-family:'Outfit',sans-serif; back
     </div>
     <div class="page show" id="page-map" style="padding:0; position:relative; overflow:hidden;">
       <div id="driverMap"></div>
+      <!-- Reopen button (only appears after closing the status panel) -->
+      <div id="reopenPanelBtn" onclick="openMapPanel()" style="display:none; position:absolute; bottom:90px; left:20px; background:var(--blue); color:#fff; padding:10px 18px; border-radius:9999px; box-shadow:0 4px 20px var(--glow); font-weight:700; font-size:13px; z-index:100; display:flex; align-items:center; gap:8px; white-space:nowrap;">
+        <span style="font-size:18px;">📊</span> Driver Status
+      </div>
     </div>
     <div class="page" id="page-earnings">
       <div>
@@ -994,7 +998,14 @@ window.switchPage = function(name) {
     const snl = document.querySelector(`.snl[data-page="${p}"]`);
     if (snl) snl.classList.toggle('act', p === name);
   });
-  if (name === 'map') setTimeout(() => driverMap?.resize(), 40);
+  if (name === 'map') {
+    setTimeout(() => {
+      driverMap?.resize();
+      document.getElementById('mapPanel').classList.add('show-panel');
+      const reopenBtn = document.getElementById('reopenPanelBtn');
+      if (reopenBtn) reopenBtn.style.display = 'none';
+    }, 40);
+  }
 };
 // ── TOAST ─────────────────────────────────────────────────────────────
 window.showToast = function(msg) {
@@ -1002,10 +1013,17 @@ window.showToast = function(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 };
-// ── NEW: CLOSE DRIVER STATUS PANEL (exit button) ─────────────────────
+// ── DRIVER STATUS PANEL CONTROLS (close + reopen) ─────────────────────
 window.closeMapPanel = function() {
   document.getElementById('mapPanel').classList.remove('show-panel');
+  const reopenBtn = document.getElementById('reopenPanelBtn');
+  if (reopenBtn) reopenBtn.style.display = 'flex';
   showToast('Status panel closed');
+};
+window.openMapPanel = function() {
+  document.getElementById('mapPanel').classList.add('show-panel');
+  const reopenBtn = document.getElementById('reopenPanelBtn');
+  if (reopenBtn) reopenBtn.style.display = 'none';
 };
 </script>
 </body>
