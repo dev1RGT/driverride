@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>VynixRide — Driver</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+<style>
+:root {
+  --ink:#0F172A; --bg:#F1F5F9; --card:#FFFFFF; --card2:#F8FAFC;
+  --border:#E2E8F0; --muted:#64748B;
+  --blue:#1A3BFF; --blue2:#4A6CFF;
+  --green:#10B981; --green2:#059669;
+  --red:#EF4444; --orange:#F59E0B;
+  --glow:rgba(26,59,255,.2);
+  --nav-h:60px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+  /* Panel heights - NEVER covers full map */
+  --panel-peek:88px;        /* only peeking handle + status strip */
+  --panel-mid:56vh;         /* default rest state — map still visible */
+  --panel-full:80vh;        /* fully expanded but still ~20% map visible */
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth:cubic-bezier(0.4,0,0.2,1);
+  --ease-out:cubic-bezier(0,0,0.2,1);
+}
+[data-theme="dark"] {
+  --ink:#F1F5F9; --bg:#0A0F1E; --card:#111827; --card2:#1E2637;
+  --border:#1E293B; --muted:#94A3B8;
+  --blue:#4A6CFF; --blue2:#6B8FFF;
+  --green:#10B981; --green2:#34D399;
+  --red:#F87171; --orange:#FBBF24;
+  --glow:rgba(74,108,255,.25);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink)}
+
+/* ── LOADER ── */
+.init-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s var(--ease-smooth)}
+.init-loader.hide{opacity:0;pointer-events:none}
+.loader-spinner{width:38px;height:38px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-sub{font-size:12px;color:var(--muted);margin-top:8px;font-weight:500}
+
+.shell{display:flex;height:100dvh;width:100vw;overflow:hidden;opacity:0;transition:opacity .5s var(--ease-smooth);flex-direction:column}
+.shell.ready{opacity:1}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;padding-top:calc(10px + var(--safe-top));
+  background:var(--card);border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:30;
+  transition:background .3s var(--ease-smooth),border-color .3s var(--ease-smooth),transform .4s var(--ease-smooth);
+}
+.topbar.slide-up{transform:translateY(-100%)}
+.tb-logo{display:flex;align-items:center;gap:9px}
+.tb-mark{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;transition:background .3s}
+.tb-name{font-size:14px;font-weight:800;color:var(--ink)}
+.tb-badge{font-size:8px;font-weight:700;background:rgba(16,185,129,.12);color:var(--green2);padding:2px 6px;border-radius:6px;margin-left:3px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;cursor:pointer;transition:transform .2s var(--ease-spring),background .3s}
+.tb-av:active{transform:scale(0.9)}
+.online-toggle{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:20px;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);touch-action:manipulation;user-select:none;transition:background .3s var(--ease-smooth),border-color .3s var(--ease-smooth),transform .2s var(--ease-spring)}
+.online-toggle.on{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.35)}
+.online-toggle:active{transform:scale(0.94)}
+.ot-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s var(--ease-smooth)}
+.online-toggle.on .ot-dot{background:var(--green);animation:pdot 2s ease-in-out infinite}
+.ot-lbl{font-size:12px;font-weight:700;color:var(--muted);transition:color .3s}
+.online-toggle.on .ot-lbl{color:var(--green2)}
+@keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
+
+.dm-toggle{display:flex;align-items:center;gap:7px;background:var(--card2);border:1.5px solid var(--border);border-radius:30px;padding:5px 10px 5px 6px;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;transition:background .3s,border-color .3s,transform .2s var(--ease-spring)}
+.dm-toggle:active{transform:scale(.94)}
+.dm-pill{width:42px;height:24px;border-radius:12px;background:var(--border);position:relative;transition:background .35s var(--ease-smooth);flex-shrink:0}
+[data-theme="dark"] .dm-pill{background:linear-gradient(135deg,#4A6CFF,#7C3AED)}
+.dm-pill::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .35s var(--ease-spring);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+[data-theme="dark"] .dm-pill::after{transform:translateX(18px)}
+.dm-icon{font-size:13px;line-height:1;transition:transform .3s var(--ease-spring)}
+
+/* ── MAP PAGE ── */
+.map-page{flex:1;display:none;position:relative;overflow:hidden;min-height:0}
+.map-page.show{display:block}
+.map-wrap{position:absolute;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom));transition:bottom .38s var(--ease-smooth)}
+.map-wrap.nav-active{bottom:calc(var(--nav-h) + var(--safe-bottom))}
+.map-wrap.nav-fullscreen{bottom:calc(var(--nav-h) + var(--safe-bottom)) !important}
+#driverMap{position:absolute;inset:0;width:100%;height:100%}
+
+/* ── DRIVER PANEL — KEY FIX: never covers full map ── */
+.driver-panel{
+  position:absolute;left:0;right:0;
+  bottom:calc(var(--nav-h) + var(--safe-bottom));
+  height:var(--panel-full);
+  background:var(--card);
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.12);
+  border-top:1px solid var(--border);
+  z-index:50;display:flex;flex-direction:column;overflow:hidden;
+  /* Default: mid position = map still visible above */
+  transform:translateY(calc(var(--panel-full) - var(--panel-mid)));
+  transition:transform .4s var(--ease-smooth),background .3s,border-color .3s,box-shadow .3s;
+  will-change:transform;
+}
+.driver-panel.peek{transform:translateY(calc(var(--panel-full) - var(--panel-peek)))}
+.driver-panel.mid{transform:translateY(calc(var(--panel-full) - var(--panel-mid)))}
+.driver-panel.expanded{transform:translateY(0)}
+.driver-panel.nav-hidden{transform:translateY(calc(var(--panel-full) + 30px)) !important;pointer-events:none}
+
+/* drag indicator */
+.panel-handle{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;flex-shrink:0;cursor:pointer;touch-action:none}
+.panel-drag-bar{width:40px;height:4px;background:var(--border);border-radius:4px;transition:background .2s,width .2s var(--ease-spring)}
+.driver-panel.expanded .panel-drag-bar{width:56px;background:var(--blue2)}
+
+.panel-peek-row{display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px;flex-shrink:0;gap:10px}
+.ppr-info{display:flex;align-items:center;gap:8px}
+.ppr-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .3s}
+.ppr-dot.on{background:var(--green);animation:pdot 2s ease-in-out infinite}
+.ppr-label{font-size:14px;font-weight:800;color:var(--ink)}
+.ppr-sub{font-size:11px;color:var(--muted);font-weight:600}
+.toggle-pill{position:relative;width:56px;height:30px;cursor:pointer;background:var(--border);border-radius:15px;transition:background .3s var(--ease-smooth);flex-shrink:0;border:none;outline:none;touch-action:manipulation}
+.toggle-pill.on{background:var(--green)}
+.toggle-pill::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .32s var(--ease-spring);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.toggle-pill.on::after{transform:translateX(26px)}
+.toggle-pill:active{transform:scale(0.93)}
+
+/* show-panel btn */
+.show-panel-btn{position:absolute;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(60px);z-index:55;background:var(--card);color:var(--ink);border:1.5px solid var(--border);border-radius:24px;padding:9px 20px;font-size:13px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;touch-action:manipulation;transition:transform .4s var(--ease-spring),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+.show-panel-btn.visible{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all}
+.show-panel-btn:active{transform:translateX(-50%) scale(.94) !important}
+
+.panel-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0;padding:4px 14px calc(120px + var(--safe-bottom));display:flex;flex-direction:column;gap:11px;overscroll-behavior:contain}
+.panel-scroll::-webkit-scrollbar{width:3px}
+.panel-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* panel state hint */
+.panel-state-hint{text-align:center;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0 6px;opacity:.7;transition:opacity .3s}
+
+/* ── PANEL CONTENT ── */
+.status-hero{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;flex-shrink:0;transition:background .3s,border-color .3s}
+.sh-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.sh-val{font-size:17px;font-weight:900;color:var(--green);transition:color .3s}
+.sh-val.off{color:var(--muted)}
+
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex-shrink:0}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;transition:background .3s,border-color .3s,transform .2s var(--ease-spring)}
+.stat-card:active{transform:scale(0.97)}
+.sc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.sc-val{font-size:17px;font-weight:900;color:var(--ink);line-height:1}
+.sc-val span{font-size:11px;font-weight:600;color:var(--muted)}
+
+.active-ride-card{background:linear-gradient(135deg,rgba(26,59,255,.08),rgba(74,108,255,.12));border:1.5px solid rgba(26,59,255,.22);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:10px;flex-shrink:0;animation:cardSlideIn .4s var(--ease-spring)}
+@keyframes cardSlideIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+[data-theme="dark"] .active-ride-card{background:linear-gradient(135deg,rgba(26,59,255,.15),rgba(74,108,255,.2))}
+.active-ride-card.show{display:flex}
+.ar-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ar-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:var(--blue);background:rgba(26,59,255,.1);padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;flex-shrink:0}
+.ar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pdot 1.5s ease-in-out infinite}
+.ar-fare-big{font-size:20px;font-weight:900;color:var(--ink)}
+.ar-rider-row{display:flex;align-items:center;gap:10px}
+.ar-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.ar-name{font-size:15px;font-weight:800;color:var(--ink)}
+.ar-dest-txt{font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+.ar-cells{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.ar-cell{background:rgba(255,255,255,.08);border:1px solid rgba(26,59,255,.12);border-radius:10px;padding:9px 10px;transition:background .3s}
+[data-theme="dark"] .ar-cell{background:rgba(255,255,255,.05)}
+.ar-cell-lbl{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.ar-cell-val{font-size:14px;font-weight:900;color:var(--ink);line-height:1}
+.ar-route-box{background:rgba(255,255,255,.06);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px}
+.ar-rp{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--ink);font-weight:600}
+.ar-rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.ar-rp-dot.p{background:var(--green)}
+.ar-rp-dot.d{background:var(--blue2)}
+
+/* ride actions */
+.ar-actions-grid{display:grid;gap:8px}
+.ride-phase{display:none}
+.ride-phase.active{display:grid;gap:8px}
+#phase-pickup.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""arrived arrived""cancel cancel"}
+#phase-pickup .btn-nav{grid-area:nav}
+#phase-pickup .btn-chat-ar{grid-area:chat}
+#phase-pickup .btn-arrived{grid-area:arrived}
+#phase-pickup .btn-cancel-active{grid-area:cancel}
+#phase-riding.active{grid-template-columns:1fr 1fr;grid-template-areas:"nav chat""complete complete""cancel cancel"}
+#phase-riding .btn-nav{grid-area:nav}
+#phase-riding .btn-chat-ar{grid-area:chat}
+#phase-riding .btn-complete{grid-area:complete}
+#phase-riding .btn-cancel-active{grid-area:cancel}
+
+/* buttons */
+.btn-nav{padding:13px 10px;border-radius:11px;border:none;background:linear-gradient(130deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .18s var(--ease-spring),opacity .18s,box-shadow .18s;touch-action:manipulation;box-shadow:0 3px 12px rgba(79,70,229,.3);min-height:48px}
+.btn-nav:active{transform:scale(.95);opacity:.88}
+.btn-nav.navigating{background:linear-gradient(130deg,#059669,#10B981);box-shadow:0 3px 12px rgba(16,185,129,.3)}
+.btn-chat-ar{padding:13px 10px;border-radius:11px;background:rgba(255,255,255,.12);border:1.5px solid rgba(26,59,255,.2);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .18s var(--ease-spring),background .18s;touch-action:manipulation;position:relative;min-height:48px}
+.btn-chat-ar:active{background:rgba(255,255,255,.25);transform:scale(.95)}
+.chat-unread-badge{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid var(--card);font-size:9px;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;animation:badgePop .3s var(--ease-spring)}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+.chat-unread-badge.show{display:flex}
+.btn-arrived{padding:15px;border-radius:11px;border:none;background:linear-gradient(130deg,#F59E0B,#D97706);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:transform .18s var(--ease-spring),opacity .18s;box-shadow:0 3px 12px rgba(245,158,11,.3);min-height:50px}
+.btn-arrived:active{transform:scale(.97);opacity:.88}
+.btn-complete{padding:15px;border-radius:11px;border:none;background:linear-gradient(130deg,var(--green),var(--green2));color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,.28);touch-action:manipulation;transition:transform .18s var(--ease-spring),opacity .18s;min-height:50px}
+.btn-complete:active{transform:scale(.97);opacity:.88}
+.btn-cancel-active{padding:13px;border-radius:11px;background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:transform .18s var(--ease-spring),background .18s;min-height:46px}
+.btn-cancel-active:active{background:rgba(239,68,68,.14);transform:scale(.97)}
+
+/* arrived pin */
+.arrived-pin-card{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.18));border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px;display:none;flex-direction:column;align-items:center;gap:8px;text-align:center;animation:cardSlideIn .4s var(--ease-spring)}
+.arrived-pin-card.show{display:flex}
+.apc-label{font-size:10px;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em}
+.apc-pin{font-size:34px;font-weight:900;color:var(--ink);letter-spacing:8px;line-height:1}
+.apc-note{font-size:11px;font-weight:500;color:var(--muted)}
+
+/* requests */
+.req-section-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:6px}
+.ride-req-list{display:flex;flex-direction:column;gap:10px}
+.no-rides{text-align:center;padding:22px 12px;color:var(--muted);font-size:13px;font-weight:600;background:var(--card2);border-radius:12px;border:1px dashed var(--border)}
+.no-rides-ico{font-size:26px;margin-bottom:8px;opacity:.6}
+
+.req-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px;animation:slideIn .3s var(--ease-spring);transition:background .3s,border-color .3s,transform .2s var(--ease-smooth),opacity .2s}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.req-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:6px}
+.req-rider{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.req-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.req-name{font-size:14px;font-weight:800;color:var(--ink)}
+.req-type-chip{font-size:9px;font-weight:700;background:rgba(26,59,255,.08);color:var(--blue);padding:3px 8px;border-radius:7px;margin-top:2px;display:inline-block}
+.req-fare{font-size:18px;font-weight:900;color:var(--green2);flex-shrink:0}
+.req-fare-lbl{font-size:9px;color:var(--muted);font-weight:600;text-align:right}
+.req-divider{height:1px;background:var(--border);margin:8px 0}
+.req-route{display:flex;flex-direction:column;gap:9px;margin-bottom:11px}
+.req-point{display:flex;align-items:flex-start;gap:9px}
+.rp-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rp-icon.pickup{background:rgba(16,185,129,.15)}
+.rp-icon.drop{background:rgba(26,59,255,.1)}
+.rp-dot{width:8px;height:8px;border-radius:50%}
+.rp-dot.pickup{background:var(--green)}
+.rp-dot.drop{background:var(--blue2)}
+.rp-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rp-addr{font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;margin-top:1px}
+.req-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.req-chip{font-size:10px;font-weight:600;color:var(--muted);background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:7px;transition:background .2s}
+.req-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.btn-decline{padding:13px;border-radius:10px;background:rgba(239,68,68,.07);border:1.5px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:transform .18s var(--ease-spring),background .18s;touch-action:manipulation;min-height:48px}
+.btn-decline:active{background:rgba(239,68,68,.15);transform:scale(.95)}
+.btn-accept{padding:13px;border-radius:10px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:transform .18s var(--ease-spring),opacity .18s;box-shadow:0 3px 12px var(--glow);touch-action:manipulation;min-height:48px}
+.btn-accept:active{transform:scale(.95);opacity:.88}
+.btn-accept:disabled{opacity:.5;pointer-events:none}
+
+/* ── NAVIGATION HUD ── */
+.nav-hud{position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;display:none}
+.nav-hud.show{display:block}
+.nav-instruction-bar{position:absolute;top:10px;left:10px;right:10px;background:rgba(15,23,42,.93);backdrop-filter:blur(14px);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);pointer-events:all;z-index:10;animation:navBarIn .4s var(--ease-spring)}
+@keyframes navBarIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.nav-maneuver-box{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.nav-inst-text{flex:1;min-width:0}
+.nav-dist-lbl{font-size:10px;font-weight:800;color:#94A3B8;letter-spacing:.06em;text-transform:uppercase}
+.nav-inst-main{font-size:15px;font-weight:900;color:#fff;margin-top:2px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-close-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;transition:background .18s,transform .18s var(--ease-spring);pointer-events:all}
+.nav-close-x:hover{background:rgba(255,255,255,.22)}
+.nav-close-x:active{transform:scale(.9)}
+
+.nav-steps-panel{position:absolute;left:0;right:0;bottom:0;background:var(--card);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all;transition:height .35s var(--ease-smooth),background .3s;height:220px}
+.nav-steps-panel.collapsed{height:54px}
+.nav-steps-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;cursor:pointer;touch-action:manipulation;user-select:none}
+.nav-steps-title{font-size:12px;font-weight:800;color:var(--ink)}
+.nav-steps-toggle-row{display:flex;align-items:center;gap:8px}
+.nav-steps-chevron{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:transform .3s var(--ease-smooth);flex-shrink:0}
+.nav-steps-panel.collapsed .nav-steps-chevron{transform:rotate(180deg)}
+.nav-exit-btn{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:5px 10px;border-radius:8px;font-weight:800;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:background .18s,transform .18s var(--ease-spring);pointer-events:all}
+.nav-exit-btn:active{background:rgba(239,68,68,.2);transform:scale(.94)}
+.nav-eta-chips{display:flex;gap:6px;flex-shrink:0}
+.nav-eta-chip{font-size:10px;font-weight:700;color:var(--muted);background:var(--bg);padding:3px 9px;border-radius:9px}
+.nav-eta-chip.highlight{background:rgba(26,59,255,.1);color:var(--blue)}
+.nav-steps-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.nav-step-row{display:flex;align-items:flex-start;gap:9px;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,.04);transition:background .2s}
+.nav-step-row:last-child{border:none}
+.nav-step-row.current-step{background:rgba(79,70,229,.07)}
+.nav-step-num{width:20px;height:20px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--muted);flex-shrink:0;margin-top:1px;transition:background .3s,color .3s}
+.nav-step-num.done{background:var(--green);color:#fff}
+.nav-step-num.cur{background:var(--blue);color:#fff}
+.nav-step-body{flex:1;min-width:0}
+.nav-step-text{font-size:11px;font-weight:700;color:var(--ink);line-height:1.35}
+.nav-step-d{font-size:10px;color:var(--muted);font-weight:600;margin-top:1px}
+
+.map-controls{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:5;pointer-events:all}
+.map-ctrl-btn{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;transition:transform .18s var(--ease-spring),background .18s;touch-action:manipulation;pointer-events:all}
+.map-ctrl-btn:active{background:var(--bg);transform:scale(.93)}
+
+.recenter-btn{position:absolute;right:10px;bottom:230px;z-index:10;pointer-events:all;background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;box-shadow:0 4px 16px var(--glow);display:none;align-items:center;gap:6px;transition:transform .2s var(--ease-spring),opacity .2s;touch-action:manipulation}
+.recenter-btn.show{display:flex;animation:fadeInScale .3s var(--ease-spring)}
+@keyframes fadeInScale{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.recenter-btn:active{transform:scale(.93)}
+
+/* ── PIN OVERLAY ── */
+.pin-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:0;transition:opacity .3s}
+.pin-overlay.show{display:flex}
+.pin-card{background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px calc(24px + var(--safe-bottom));width:100%;text-align:center;animation:slideUp .38s var(--ease-spring);box-shadow:0 -8px 40px rgba(0,0,0,.25);position:relative}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.pin-back-btn{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:50%;background:var(--bg);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;touch-action:manipulation;transition:background .18s,transform .18s var(--ease-spring)}
+.pin-back-btn:active{background:var(--border);transform:scale(.9)}
+.pin-icon{font-size:36px;margin-bottom:10px}
+.pin-title{font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.4px;margin-bottom:5px}
+.pin-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;font-weight:500}
+.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.pin-digit{width:52px;height:62px;border-radius:14px;background:linear-gradient(135deg,rgba(26,59,255,.1),rgba(74,108,255,.18));border:2px solid rgba(26,59,255,.2);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--blue);font-family:'Outfit',sans-serif;animation:pinDigitIn .3s var(--ease-spring) both}
+.pin-digit:nth-child(1){animation-delay:.05s}
+.pin-digit:nth-child(2){animation-delay:.1s}
+.pin-digit:nth-child(3){animation-delay:.15s}
+.pin-digit:nth-child(4){animation-delay:.2s}
+@keyframes pinDigitIn{from{transform:translateY(8px) scale(.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.pin-input-row{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.pin-input-digit{width:56px;height:58px;border-radius:12px;border:2px solid var(--border);background:var(--card2);font-size:24px;font-weight:800;text-align:center;font-family:'Outfit',sans-serif;color:var(--ink);outline:none;transition:border-color .2s,background .2s,transform .2s var(--ease-spring)}
+.pin-input-digit:focus{border-color:var(--blue);background:var(--card);transform:scale(1.06)}
+.pin-verify-btn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);transition:transform .18s var(--ease-spring),opacity .18s;margin-bottom:10px;touch-action:manipulation}
+.pin-verify-btn:active{transform:scale(.97);opacity:.88}
+.pin-error{font-size:12px;color:var(--red);font-weight:700;display:none;margin-top:4px;animation:shake .3s var(--ease-smooth)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.pin-arrived-note{font-size:11px;font-weight:500;color:var(--muted);line-height:1.5}
+
+/* ── PAGES ── */
+.page{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px;-webkit-overflow-scrolling:touch;transition:opacity .3s var(--ease-smooth),transform .3s var(--ease-smooth)}
+.page.show{display:flex;animation:pageIn .32s var(--ease-smooth)}
+@keyframes pageIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.ph{font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.4px}
+.ph-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+.section-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;flex-shrink:0}
+
+/* earnings */
+.earn-hero{background:linear-gradient(135deg,#1E3A8A,#1D4ED8,#3B82F6);border-radius:18px;padding:20px;position:relative;overflow:hidden;flex-shrink:0}
+.earn-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07)}
+.eh-lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:3px}
+.eh-amount{font-size:36px;font-weight:900;color:#fff;letter-spacing:-.8px;margin-bottom:14px;position:relative;z-index:1}
+.eh-stats{display:flex;gap:8px;position:relative;z-index:1}
+.eh-stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:11px;padding:9px 12px;flex:1}
+.eh-stat-val{font-size:17px;font-weight:800;color:#fff}
+.eh-stat-lbl{font-size:9px;color:rgba(255,255,255,.65);margin-top:1px;font-weight:700;text-transform:uppercase}
+
+.trip-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start;transition:background .3s,border-color .3s,transform .2s var(--ease-spring)}
+.trip-card:active{transform:scale(.99)}
+.tc-type{font-size:14px;font-weight:800;color:var(--ink)}
+.tc-rider{font-size:12px;color:var(--blue);font-weight:700;margin-top:2px}
+.tc-route{font-size:11px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.4}
+.tc-date{font-size:11px;color:var(--muted);margin-top:5px;font-weight:500}
+.tc-badge{font-size:9px;font-weight:800;color:var(--green2);background:rgba(16,185,129,.1);padding:3px 8px;border-radius:7px;margin-top:5px;display:inline-block}
+.tc-badge.canceled{color:var(--red);background:rgba(239,68,68,.1)}
+.tc-fare{font-size:16px;font-weight:900;color:var(--green2);flex-shrink:0;padding-left:10px}
+.tc-fare.canceled{color:var(--red)}
+.tc-km{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px}
+
+/* ── ACCOUNT / PROFILE ── */
+.prof-card{background:linear-gradient(135deg,rgba(26,59,255,.07),rgba(74,108,255,.12));border:1px solid rgba(26,59,255,.2);border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;flex-shrink:0}
+.prof-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(26,59,255,.06)}
+.pc-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;box-shadow:0 4px 16px var(--glow);transition:transform .3s var(--ease-spring)}
+.pc-av:active{transform:scale(.92)}
+.pc-name{font-size:17px;font-weight:900;color:var(--ink)}
+.pc-email{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px}
+.pc-tag{font-size:9px;font-weight:800;background:rgba(16,185,129,.12);color:var(--green2);padding:3px 8px;border-radius:7px;margin-top:7px;display:inline-block;text-transform:uppercase;letter-spacing:.05em}
+
+/* EDITABLE PROFILE SECTION */
+.edit-profile-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;flex-shrink:0;transition:background .3s,border-color .3s}
+.ep-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.ep-title{font-size:13px;font-weight:800;color:var(--ink)}
+.ep-edit-btn{background:rgba(26,59,255,.08);color:var(--blue);border:1px solid rgba(26,59,255,.2);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;transition:background .2s,transform .2s var(--ease-spring)}
+.ep-edit-btn:active{transform:scale(.94)}
+.ep-save-btn{background:var(--blue);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;display:none;transition:background .2s,transform .2s var(--ease-spring)}
+.ep-save-btn:active{transform:scale(.94)}
+.ep-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.ep-field{display:flex;flex-direction:column;gap:5px}
+.ep-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.ep-value{font-size:14px;font-weight:700;color:var(--ink);padding:4px 0;transition:color .2s}
+.ep-input{font-size:14px;font-weight:700;color:var(--ink);padding:10px 13px;border-radius:10px;border:1.5px solid var(--blue2);background:var(--card2);font-family:'Outfit',sans-serif;outline:none;width:100%;display:none;transition:border-color .2s,background .2s,transform .2s var(--ease-spring)}
+.ep-input:focus{border-color:var(--blue);transform:scale(1.01)}
+.edit-mode .ep-value{display:none}
+.edit-mode .ep-input{display:block;animation:fieldIn .25s var(--ease-spring)}
+@keyframes fieldIn{from{transform:translateY(-4px) scale(.98);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+
+.acc-group-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:2px 0 5px 3px;flex-shrink:0}
+.acc-group{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;transition:background .3s,border-color .3s}
+.acc-row{display:flex;align-items:center;justify-content:space-between;padding:15px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.acc-row:last-child{border:none}
+.acc-row:active{background:rgba(0,0,0,.04)}
+.arl{display:flex;align-items:center;gap:12px}
+.ar-icon{width:32px;height:32px;border-radius:9px;background:rgba(26,59,255,.09);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s var(--ease-spring)}
+.acc-row:active .ar-icon{transform:scale(.92)}
+.ar-icon.red-bg{background:rgba(239,68,68,.09)}
+.ar-icon.green-bg{background:rgba(16,185,129,.09)}
+.ar-label{font-size:14px;font-weight:700;color:var(--ink)}
+.ar-arrow{color:var(--muted);font-size:16px;transition:transform .2s var(--ease-smooth)}
+.acc-row:active .ar-arrow{transform:translateX(3px)}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));background:var(--card);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:flex-start;padding-top:8px;z-index:100;transition:background .3s,border-color .3s}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:color .22s var(--ease-smooth),transform .22s var(--ease-spring);padding:4px 14px;position:relative;touch-action:manipulation;min-width:60px;user-select:none}
+.bni.act{color:var(--blue)}
+.bni.act svg{transform:scale(1.15)}
+.bni svg{transition:transform .25s var(--ease-spring)}
+.bni:active{transform:scale(.9)}
+.bni-dot{position:absolute;top:2px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--card);display:none;animation:badgePop .3s var(--ease-spring)}
+.bni-dot.show{display:block}
+/* active indicator bar */
+.bni::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%) scaleX(0);width:24px;height:3px;border-radius:3px;background:var(--blue);transition:transform .28s var(--ease-spring)}
+.bni.act::after{transform:translateX(-50%) scaleX(1)}
+
+/* ── CANCEL MODAL ── */
+.cancel-modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;transition:opacity .3s}
+.cancel-modal-bg.show{display:flex}
+.cancel-modal{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:18px 16px calc(24px + var(--safe-bottom));animation:slideUp .32s var(--ease-spring);transition:background .3s}
+.cm-pill{width:38px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px}
+.cm-title{font-size:18px;font-weight:900;color:var(--ink);margin-bottom:5px}
+.cm-sub{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:16px}
+.cm-reasons{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.cm-reason{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:13px;border:1.5px solid var(--border);cursor:pointer;transition:border-color .2s,background .2s,transform .18s var(--ease-spring);touch-action:manipulation;background:var(--card2)}
+.cm-reason:active{transform:scale(.98)}
+.cm-reason.selected{border-color:var(--red);background:rgba(239,68,68,.06)}
+.cm-reason-icon{font-size:18px;flex-shrink:0}
+.cm-reason-text{font-size:13px;font-weight:700;color:var(--ink)}
+.cm-reason-check{margin-left:auto;width:19px;height:19px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s,transform .25s var(--ease-spring)}
+.cm-reason.selected .cm-reason-check{border-color:var(--red);background:var(--red);transform:scale(1.1)}
+.cm-reason.selected .cm-reason-check::after{content:'✓';font-size:10px;color:#fff;font-weight:800}
+.cm-btns{display:grid;grid-template-columns:1fr 2fr;gap:9px}
+.cm-cancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation;transition:background .18s,transform .18s var(--ease-spring)}
+.cm-cancel:active{transform:scale(.96)}
+.cm-confirm{padding:14px;border:none;background:var(--red);color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;touch-action:manipulation;transition:opacity .2s,transform .18s var(--ease-spring)}
+.cm-confirm:disabled{opacity:.5}
+.cm-confirm:not(:disabled):active{transform:scale(.96)}
+
+/* ── ACCEPT MODAL ── */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.mbg.show{display:flex}
+.modal{background:var(--card);border-radius:22px 22px 0 0;padding:22px 16px calc(28px + var(--safe-bottom));width:100%;max-width:440px;animation:slideUp .32s var(--ease-spring);border:1px solid var(--border);border-bottom:none;transition:background .3s}
+.mh{font-size:17px;font-weight:900;color:var(--ink);margin-bottom:14px}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.mrow:last-of-type{border:none}
+.mrl{font-size:13px;font-weight:500;color:var(--muted)}
+.mrv{font-size:13px;font-weight:700;color:var(--ink);max-width:200px;text-align:right}
+.mbtns{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:18px}
+.mcancel{padding:14px;border:1.5px solid var(--border);background:transparent;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink);touch-action:manipulation;transition:background .18s,transform .18s var(--ease-spring)}
+.mcancel:active{transform:scale(.95)}
+.mok{padding:14px;border:none;background:linear-gradient(130deg,var(--blue2),var(--blue));color:#fff;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px var(--glow);touch-action:manipulation;transition:transform .18s var(--ease-spring),opacity .18s}
+.mok:not(:disabled):active{transform:scale(.95)}
+.mok:disabled{opacity:.6;pointer-events:none}
+
+/* ── VEHICLE MODAL ── */
+.vehicle-mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.vehicle-mbg.show{display:flex}
+.t-input{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--ink);outline:none;transition:border-color .22s,background .22s,transform .2s var(--ease-spring)}
+.t-input:focus{border-color:var(--blue2);background:var(--card);transform:scale(1.01)}
+.t-input::placeholder{color:var(--muted);font-weight:500}
+.slabel{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;display:block}
+.input-wrap{margin-bottom:14px}
+
+/* ── CHAT SHEET ── */
+.chat-sheet-bg{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.chat-sheet-bg.show{display:flex}
+.chat-sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .32s var(--ease-spring);box-shadow:0 -4px 30px rgba(0,0,0,.15);transition:background .3s}
+.chat-header{display:flex;align-items:center;gap:11px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.chat-rider-name{font-size:15px;font-weight:800;color:var(--ink)}
+.chat-status{font-size:12px;color:var(--green2);font-weight:700;margin-top:1px}
+.chat-close{margin-left:auto;width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:manipulation;transition:background .18s,transform .18s var(--ease-spring)}
+.chat-close:active{transform:scale(.88)}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+.chat-msg{display:flex;flex-direction:column;gap:3px;max-width:80%;animation:msgIn .25s var(--ease-spring)}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.chat-msg.mine{align-self:flex-end;align-items:flex-end}
+.chat-msg.theirs{align-self:flex-start;align-items:flex-start}
+.chat-bubble{padding:10px 14px;border-radius:18px;font-size:14px;font-weight:500;line-height:1.4;word-break:break-word}
+.chat-msg.mine .chat-bubble{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;border-bottom-right-radius:4px}
+.chat-msg.theirs .chat-bubble{background:var(--card2);border:1px solid var(--border);color:var(--ink);border-bottom-left-radius:4px}
+.chat-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-weight:600}
+.chat-typing-indicator{align-self:flex-start;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:4px;display:none}
+.chat-typing-indicator.show{display:flex;align-items:center;gap:4px;animation:msgIn .25s var(--ease-spring)}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typingBounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.quick-replies{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:7px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.quick-replies::-webkit-scrollbar{display:none}
+.qr-btn{white-space:nowrap;padding:8px 13px;border-radius:18px;background:rgba(26,59,255,.06);border:1px solid rgba(26,59,255,.18);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .18s,transform .18s var(--ease-spring);flex-shrink:0;touch-action:manipulation}
+.qr-btn:active{background:rgba(26,59,255,.14);transform:scale(.94)}
+.chat-input-row{display:flex;gap:9px;padding:10px 14px calc(14px + var(--safe-bottom));border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end}
+.chat-text-input{flex:1;border:1.5px solid var(--border);border-radius:22px;padding:10px 15px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);background:var(--card2);outline:none;resize:none;max-height:90px;line-height:1.4;transition:border-color .22s,background .22s}
+.chat-text-input:focus{border-color:var(--blue2);background:var(--card)}
+.chat-send-btn{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s var(--ease-spring),opacity .18s;box-shadow:0 3px 10px var(--glow);flex-shrink:0;touch-action:manipulation}
+.chat-send-btn:active{transform:scale(.88)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:var(--bg);padding:11px 22px;border-radius:28px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .28s var(--ease-smooth),transform .32s var(--ease-spring);z-index:1000;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── NOTIF BANNER ── */
+.ride-notif-banner{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:calc(100vw - 24px);width:calc(100% - 24px);transition:transform .42s var(--ease-spring)}
+.ride-notif-banner.show{transform:translateX(-50%) translateY(0)}
+.rnb-pulse{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pdot 1s infinite}
+.rnb-text{flex:1;min-width:0}
+.rnb-title{font-size:13px;font-weight:800}
+.rnb-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-theme="dark"] .rnb-sub{color:rgba(241,245,249,.6)}
+.rnb-btn{background:var(--green);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;flex-shrink:0;touch-action:manipulation;transition:transform .18s var(--ease-spring)}
+.rnb-btn:active{transform:scale(.92)}
+
+/* ── DRIVER MARKER ── */
+.driver-marker-halo{width:48px;height:48px;background:rgba(26,59,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-halo 2.5s infinite}
+.driver-marker-core{width:16px;height:16px;background:#1A3BFF;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+@keyframes pulse-halo{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
+
+/* ── SWIPE PAGES CONTAINER ── */
+.pages-swipe-container{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column}
+.pages-swipe-container .page{position:absolute;inset:0;overflow-y:auto;padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 16px);gap:14px}
+
+/* ── DESKTOP ── */
+@media (min-width: 800px) {
+  .shell{display:grid;grid-template-columns:80px 1fr;grid-template-rows:auto 1fr;height:100vh}
+  .topbar{grid-column:1 / -1;grid-row:1;padding-left:24px;padding-right:24px}
+  .bnav{grid-column:1;grid-row:2;position:static;height:100%;flex-direction:column;justify-content:flex-start;padding-top:30px;gap:30px;border-top:none;border-right:1px solid var(--border);background:var(--card)}
+  .bni{width:100%;min-width:auto}
+  .bni::after{display:none}
+  .map-page,.page{grid-column:2;grid-row:2;padding-bottom:20px}
+  .page{align-items:center;padding-top:40px}
+  .page > *{width:100%;max-width:800px}
+  .map-wrap,.map-wrap.nav-active,.map-wrap.nav-fullscreen{bottom:0 !important}
+  .driver-panel{top:20px;left:20px;bottom:20px;width:400px;height:auto !important;transform:none !important;border-radius:22px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,.1)}
+  .driver-panel.nav-hidden{transform:none !important;pointer-events:all}
+  .panel-handle{display:none}
+  .panel-peek-row{padding-top:20px}
+  .show-panel-btn{bottom:40px;left:440px;transform:none;opacity:0;pointer-events:none}
+  .show-panel-btn.visible{transform:none;opacity:1;pointer-events:all}
+  .show-panel-btn:active{transform:scale(.96) !important}
+  .mbg,.vehicle-mbg,.cancel-modal-bg,.chat-sheet-bg,.pin-overlay{align-items:center;padding:20px}
+  .modal,.cancel-modal,.chat-sheet,.pin-card{border-radius:22px !important;animation:popIn .32s var(--ease-spring);box-shadow:0 20px 60px rgba(0,0,0,.2) !important;max-height:85vh}
+  .pin-card{max-width:440px}
+  @keyframes popIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+  .nav-steps-panel{left:20px;right:auto;bottom:20px;width:350px;border-radius:20px;border:1px solid var(--border)}
+  .nav-instruction-bar{top:20px;left:440px;right:auto;width:400px}
+  .map-controls{right:20px;top:auto;bottom:240px;transform:none}
+  .recenter-btn{bottom:auto;top:80px;right:20px}
+  .toast{bottom:40px !important}
+  .ride-notif-banner{max-width:400px;top:30px}
+}
+</style>
+</head>
+<body>
+
+<div class="init-loader" id="initLoader">
+  <div class="loader-spinner"></div>
+  <div style="font-family:'Outfit',sans-serif;font-weight:900;color:var(--blue);font-size:18px">VynixRide Driver</div>
+  <div class="loader-sub" id="loaderSub">Connecting…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="ride-notif-banner" id="rideNotifBanner">
+  <div class="rnb-pulse"></div>
+  <div class="rnb-text">
+    <div class="rnb-title">🚗 New Ride Request!</div>
+    <div class="rnb-sub" id="rnbSub">Pickup nearby</div>
+  </div>
+  <button class="rnb-btn" onclick="switchPage('map');dismissNotifBanner()">View</button>
+</div>
+
+<!-- ACCEPT MODAL -->
+<div class="mbg" id="acceptModal" onclick="if(event.target===this)closeAcceptModal()">
+  <div class="modal">
+    <div class="mh">🚗 Confirm Accept Ride</div>
+    <div class="mrow"><span class="mrl">Rider</span><b class="mrv" id="am-rider">—</b></div>
+    <div class="mrow"><span class="mrl">Type</span><b class="mrv" id="am-type">—</b></div>
+    <div class="mrow"><span class="mrl">Pickup</span><b class="mrv" id="am-pickup">—</b></div>
+    <div class="mrow"><span class="mrl">Destination</span><b class="mrv" id="am-dest">—</b></div>
+    <div class="mrow"><span class="mrl">Distance</span><b class="mrv" id="am-dist">—</b></div>
+    <div class="mrow"><span class="mrl">Duration</span><b class="mrv" id="am-dur">—</b></div>
+    <div class="mrow"><span class="mrl">Fare</span><b class="mrv" id="am-fare" style="color:var(--green2);font-size:17px;font-weight:900">—</b></div>
+    <div class="mbtns">
+      <button class="mcancel" onclick="closeAcceptModal()">Back</button>
+      <button class="mok" id="acceptConfirmBtn" onclick="confirmAccept()">✓ Accept Ride</button>
+    </div>
+  </div>
+</div>
+
+<!-- VEHICLE MODAL -->
+<div class="vehicle-mbg" id="vehicleModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <div class="mh">Vehicle Details</div>
+    <div class="input-wrap"><span class="slabel">Vehicle Make &amp; Model</span><input type="text" id="v-car" class="t-input" placeholder="e.g. Toyota Corolla"></div>
+    <div class="input-wrap"><span class="slabel">Licence Plate</span><input type="text" id="v-plate" class="t-input" placeholder="e.g. ABC 123 GP" style="text-transform:uppercase"></div>
+    <div class="input-wrap"><span class="slabel">Ride Type</span>
+      <select id="v-type" class="t-input">
+        <option value="VynixGo">VynixGo — Compact · Economy</option>
+        <option value="VynixComfort">VynixComfort — Newer · Legroom</option>
+        <option value="VynixXL">VynixXL — SUV · 6 seats</option>
+      </select>
+    </div>
+    <div class="mbtns" style="grid-template-columns:1fr"><button class="mok" onclick="saveVehicle()">Save &amp; Continue</button></div>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="cancel-modal-bg" id="cancelReasonModal" onclick="if(event.target===this)closeCancelModal()">
+  <div class="cancel-modal">
+    <div class="cm-pill"></div>
+    <div class="cm-title" id="cm-title">Why are you declining?</div>
+    <div class="cm-sub" id="cm-sub">Please select a reason.</div>
+    <div class="cm-reasons" id="cmReasons">
+      <div class="cm-reason" onclick="selectCancelReason(this,'Rider no-show')"><span class="cm-reason-icon">🚶</span><span class="cm-reason-text">Rider no-show</span><div class="cm-reason-check"></div></div>
+      <div class="cm-reason" onclick="selectCancelReason(this,'Wrong or unclear address')"><span class="cm-reason-icon">📍</span><span class="cm-reason-text">Wrong or unclear address</span><div class="cm-reason-check"></div></div>
+      <div class="cm-reason" onclick="selectCancelReason(this,'Traffic too heavy')"><span class="cm-reason-icon">🚦</span><span class="cm-reason-text">Traffic too heavy</span><div class="cm-reason-check"></div></div>
+      <div class="cm-reason" onclick="selectCancelReason(this,'Personal emergency')"><span class="cm-reason-icon">🆘</span><span class="cm-reason-text">Personal emergency</span><div class="cm-reason-check"></div></div>
+      <div class="cm-reason" onclick="selectCancelReason(this,'Vehicle breakdown')"><span class="cm-reason-icon">🔧</span><span class="cm-reason-text">Vehicle breakdown</span><div class="cm-reason-check"></div></div>
+      <div class="cm-reason" onclick="selectCancelReason(this,'Unsafe situation')"><span class="cm-reason-icon">⚠️</span><span class="cm-reason-text">Unsafe situation</span><div class="cm-reason-check"></div></div>
+    </div>
+    <div class="cm-btns">
+      <button class="cm-cancel" onclick="closeCancelModal()">Back</button>
+      <button class="cm-confirm" id="cmConfirmBtn" onclick="confirmCancelAction()" disabled>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT SHEET -->
+<div class="chat-sheet-bg" id="chatSheet" onclick="if(event.target===this)closeChat()">
+  <div class="chat-sheet">
+    <div class="chat-header">
+      <div class="chat-av" id="chatAv">?</div>
+      <div>
+        <div class="chat-rider-name" id="chatRiderName">Rider</div>
+        <div class="chat-status">🟢 Active Ride</div>
+      </div>
+      <button class="chat-close" onclick="closeChat()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600;">Say hello to your rider 👋</div>
+    </div>
+    <div class="chat-typing-indicator" id="chatTypingIndicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+    <div class="quick-replies">
+      <button class="qr-btn" onclick="sendQuickReply(`I'm 2 min away`)">⏱ 2 min away</button>
+      <button class="qr-btn" onclick="sendQuickReply(`I've arrived at pickup`)">📍 I've arrived</button>
+      <button class="qr-btn" onclick="sendQuickReply(`Running slightly late due to traffic`)">🚦 Traffic delay</button>
+      <button class="qr-btn" onclick="sendQuickReply(`On my way to you now`)">🚗 On my way</button>
+      <button class="qr-btn" onclick="sendQuickReply(`Please be ready at pickup`)">🙋 Please be ready</button>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-text-input" id="chatInput" placeholder="Message rider…" rows="1" onkeydown="chatKeydown(event)" oninput="autoResizeTextarea(this)"></textarea>
+      <button class="chat-send-btn" onclick="sendChatMsg()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-card">
+    <button class="pin-back-btn" onclick="closePinOverlay()" title="Close">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Confirm Rider PIN</div>
+    <div class="pin-subtitle">Ask the rider for their 4-digit security PIN to start the trip.</div>
+    <div class="pin-display" id="pinDisplay"></div>
+    <div class="pin-input-row" id="pinInputRow"></div>
+    <button class="pin-verify-btn" onclick="verifyPin()">Verify &amp; Start Ride</button>
+    <div class="pin-error" id="pinError">❌ Wrong PIN — try again</div>
+    <div class="pin-arrived-note">The rider received this PIN when they booked.</div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell" id="appShell">
+
+  <div class="topbar" id="mainTopbar">
+    <div class="tb-logo">
+      <div class="tb-mark">VX</div>
+      <div class="tb-name">VynixRide <span class="tb-badge">Driver</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <div class="dm-pill"></div>
+        <span class="dm-icon" id="dmIcon">🌙</span>
+      </div>
+      <div class="online-toggle" id="mobileToggle" onclick="toggleOnline()">
+        <div class="ot-dot"></div>
+        <span class="ot-lbl" id="mobileToggleLbl">Offline</span>
+      </div>
+      <div class="tb-av" id="tbAv" onclick="switchPage('account')">?</div>
+    </div>
+  </div>
+
+  <!-- MAP PAGE -->
+  <div class="map-page show" id="page-map">
+    <div class="map-wrap" id="mapWrap">
+      <div id="driverMap"></div>
+
+      <div class="nav-hud" id="navHud">
+        <div class="nav-instruction-bar" id="navInstructionBar">
+          <div class="nav-maneuver-box" id="navManeuverBox">⬆</div>
+          <div class="nav-inst-text">
+            <div class="nav-dist-lbl" id="navDistLbl">NEXT TURN</div>
+            <div class="nav-inst-main" id="navInstMain">Calculating route…</div>
+          </div>
+          <button class="nav-close-x" onclick="stopNavigation()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <button class="recenter-btn" id="recenterBtn" onclick="recenterMap()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          Re-centre
+        </button>
+
+        <div class="map-controls" id="mapControls">
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomIn()">+</button>
+          <button class="map-ctrl-btn" onclick="if(driverMap)driverMap.zoomOut()">−</button>
+        </div>
+
+        <div class="nav-steps-panel" id="navStepsPanel">
+          <div class="nav-steps-header" onclick="toggleNavSteps()">
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="nav-exit-btn" onclick="event.stopPropagation();stopNavigation()">✕ Exit Nav</button>
+              <span class="nav-steps-title">Turn-by-Turn</span>
+            </div>
+            <div class="nav-steps-toggle-row">
+              <div class="nav-eta-chips">
+                <span class="nav-eta-chip highlight" id="navETA">—</span>
+                <span class="nav-eta-chip" id="navDistTotal">—</span>
+              </div>
+              <div class="nav-steps-chevron">▲</div>
+            </div>
+          </div>
+          <div class="nav-steps-scroll" id="navStepsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="show-panel-btn" id="showPanelBtn" onclick="showPanelFromNav()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+      Ride Details
+    </button>
+
+    <!-- DRIVER PANEL — fixed to show map above it -->
+    <div class="driver-panel mid" id="driverPanel">
+      <div class="panel-handle" id="panelHandle">
+        <div class="panel-drag-bar"></div>
+      </div>
+
+      <div class="panel-peek-row">
+        <div class="ppr-info">
+          <div class="ppr-dot" id="pcrDot"></div>
+          <div>
+            <div class="ppr-label" id="pcrLabel">Offline</div>
+            <div class="ppr-sub" id="pcrSub">Swipe up to expand</div>
+          </div>
+        </div>
+        <button class="toggle-pill" id="bigToggleMini" onclick="event.stopPropagation();toggleOnline()"></button>
+      </div>
+
+      <div class="panel-scroll" id="panelScroll">
+
+        <div class="status-hero">
+          <div><div class="sh-lbl">Driver Status</div><div class="sh-val off" id="statusVal">Offline</div></div>
+          <button class="toggle-pill" id="bigToggle" onclick="toggleOnline()"></button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="sc-lbl">Rides</div><div class="sc-val" id="stat-rides">0</div></div>
+          <div class="stat-card"><div class="sc-lbl">Earned</div><div class="sc-val" id="stat-earn">R0</div></div>
+          <div class="stat-card"><div class="sc-lbl">Online</div><div class="sc-val" id="stat-hrs">0<span>h</span></div></div>
+        </div>
+
+        <div class="active-ride-card" id="activeRideCard">
+          <div class="ar-header">
+            <div class="ar-badge"><div class="ar-badge-dot"></div><span id="ar-phase-label">En Route to Pickup</span></div>
+            <div class="ar-fare-big" id="ar-fare">—</div>
+          </div>
+          <div class="ar-rider-row">
+            <div class="ar-av" id="ar-av">?</div>
+            <div><div class="ar-name" id="ar-name">—</div><div class="ar-dest-txt" id="ar-dest">—</div></div>
+          </div>
+          <div class="ar-cells">
+            <div class="ar-cell"><div class="ar-cell-lbl">PIN</div><div class="ar-cell-val" id="ar-pin">—</div></div>
+            <div class="ar-cell"><div class="ar-cell-lbl">Type</div><div class="ar-cell-val" id="ar-type" style="font-size:11px">—</div></div>
+            <div class="ar-cell"><div class="ar-cell-lbl">Seats</div><div class="ar-cell-val" id="ar-seats">—</div></div>
+          </div>
+          <div class="ar-route-box">
+            <div class="ar-rp"><div class="ar-rp-dot p"></div><span id="ar-pickup-txt">—</span></div>
+            <div class="ar-rp"><div class="ar-rp-dot d"></div><span id="ar-drop-txt">—</span></div>
+          </div>
+
+          <div class="arrived-pin-card" id="arrivedPinCard">
+            <div class="apc-label">🔐 Share this PIN with rider</div>
+            <div class="apc-pin" id="arrivedPinDisplay">—</div>
+            <div class="apc-note">Rider confirms this in their app before trip starts.</div>
+          </div>
+
+          <div class="ride-phase active" id="phase-pickup">
+            <button class="btn-nav" id="btnNavPickup" onclick="startNavigation('pickup')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              Navigate to Pickup
+            </button>
+            <button class="btn-chat-ar" onclick="openChat()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chat<span class="chat-unread-badge" id="chatBadge1">0</span>
+            </button>
+            <button class="btn-arrived" onclick="driverArrived()">📍 I've Arrived at Pickup</button>
+            <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
+          </div>
+
+          <div class="ride-phase" id="phase-riding">
+            <button class="btn-nav" id="btnNavDest" onclick="startNavigation('destination')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              Navigate to Dest
+            </button>
+            <button class="btn-chat-ar" onclick="openChat()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chat<span class="chat-unread-badge" id="chatBadge2">0</span>
+            </button>
+            <button class="btn-complete" onclick="completeRide()">✓ Complete Ride</button>
+            <button class="btn-cancel-active" onclick="openCancelActiveModal()">✕ Cancel Trip</button>
+          </div>
+        </div>
+
+        <div class="req-section-lbl" id="reqLabel">Incoming Requests</div>
+        <div class="ride-req-list" id="rideReqList">
+          <div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EARNINGS PAGE -->
+  <div class="page" id="page-earnings">
+    <div><div class="ph">Earnings</div><div class="ph-sub">Your income overview</div></div>
+    <div class="earn-hero">
+      <div class="eh-lbl">Total Earnings</div>
+      <div class="eh-amount" id="totalEarnings">R 0.00</div>
+      <div class="eh-stats">
+        <div class="eh-stat"><div class="eh-stat-val" id="totalTrips">0</div><div class="eh-stat-lbl">Trips</div></div>
+        <div class="eh-stat"><div class="eh-stat-val" id="todayEarnings">R0</div><div class="eh-stat-lbl">Today</div></div>
+        <div class="eh-stat"><div class="eh-stat-val" id="avgFare">R0</div><div class="eh-stat-lbl">Avg Fare</div></div>
+      </div>
+    </div>
+    <div class="section-title">Recent Trips</div>
+    <div id="earningsTripList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">💰 No completed trips yet.</div></div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div><div class="ph">Trip History</div><div class="ph-sub" id="historyCount">All your rides</div></div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button id="tab-all" onclick="showHistoryTab('all')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--blue);background:rgba(26,59,255,.08);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .22s">All Trips</button>
+      <button id="tab-canceled" onclick="showHistoryTab('canceled')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .22s">Canceled</button>
+    </div>
+    <div id="historyList"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">🗂️ No trips yet.</div></div>
+    <div id="canceledList" style="display:none"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">No canceled rides.</div></div>
+  </div>
+
+  <!-- ACCOUNT PAGE -->
+  <div class="page" id="page-account">
+    <div><div class="ph">Account</div></div>
+
+    <div class="prof-card">
+      <div class="pc-av" id="profAv">?</div>
+      <div>
+        <div class="pc-name" id="profName">Driver</div>
+        <div class="pc-email" id="profEmail">—</div>
+        <div class="pc-tag">🚗 VynixRide Driver</div>
+      </div>
+    </div>
+
+    <!-- EDITABLE PROFILE -->
+    <div class="edit-profile-card" id="editProfileCard">
+      <div class="ep-header">
+        <div class="ep-title">Personal Details</div>
+        <button class="ep-edit-btn" id="epEditBtn" onclick="startEditProfile()">✏️ Edit</button>
+        <button class="ep-save-btn" id="epSaveBtn" onclick="saveProfileDetails()">💾 Save</button>
+      </div>
+      <div class="ep-body" id="epBody">
+        <div class="ep-field">
+          <div class="ep-label">Display Name</div>
+          <div class="ep-value" id="ep-name-val">—</div>
+          <input class="ep-input" id="ep-name-input" type="text" placeholder="Your full name">
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">Phone Number</div>
+          <div class="ep-value" id="ep-phone-val">Not set</div>
+          <input class="ep-input" id="ep-phone-input" type="tel" placeholder="+27 80 000 0000">
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">ID / Driver's Licence No.</div>
+          <div class="ep-value" id="ep-idnum-val">Not set</div>
+          <input class="ep-input" id="ep-idnum-input" type="text" placeholder="Driver's licence number">
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">City / Area</div>
+          <div class="ep-value" id="ep-city-val">Not set</div>
+          <input class="ep-input" id="ep-city-input" type="text" placeholder="e.g. Johannesburg, GP">
+        </div>
+      </div>
+    </div>
+
+    <div class="acc-group-title">Vehicle</div>
+    <div class="acc-group">
+      <div class="acc-row" onclick="openVehicleModal()">
+        <div class="arl"><div class="ar-icon"><svg width="17" height="17" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div><div class="ar-label">Vehicle Details</div><div style="font-size:11px;color:var(--muted);margin-top:2px" id="vehicleSummary">Not set up yet</div></div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="acc-group-title">App</div>
+    <div class="acc-group">
+      <div class="acc-row" onclick="switchPage('history')">
+        <div class="arl"><div class="ar-icon green-bg"><svg width="17" height="17" fill="none" stroke="var(--green2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ar-label">Trip History</div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+      <div class="acc-row" onclick="window.open('index.html','_blank')">
+        <div class="arl"><div class="ar-icon"><svg width="17" height="17" fill="none" stroke="var(--blue2)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="ar-label">Open Rider App</div></div>
+        <div class="ar-arrow">›</div>
+      </div>
+      <div class="acc-row" onclick="doSignOut()">
+        <div class="arl"><div class="ar-icon red-bg"><svg width="17" height="17" fill="none" stroke="var(--red)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="ar-label" style="color:var(--red)">Sign Out</div></div>
+        <div class="ar-arrow" style="color:var(--red)">›</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;font-weight:500">VynixRide Driver v2.6 · South Africa 🇿🇦</div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav" id="mainBnav">
+    <div class="bni act" id="bn-map" onclick="switchPage('map')">
+      <div class="bni-dot" id="bn-map-dot"></div>
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Rides
+    </div>
+    <div class="bni" id="bn-earnings" onclick="switchPage('earnings')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Earnings
+    </div>
+    <div class="bni" id="bn-history" onclick="switchPage('history')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>History
+    </div>
+    <div class="bni" id="bn-account" onclick="switchPage('account')">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account
+    </div>
+  </nav>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, get, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const FIREBASE_CONFIG = {
+  apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain:"fire-b-a8878.firebaseapp.com",
+  databaseURL:"https://fire-b-a8878.firebaseio.com",
+  projectId:"fire-b-a8878",
+  storageBucket:"fire-b-a8878.firebasestorage.app",
+  messagingSenderId:"658673187627",
+  appId:"1:658673187627:web:32699cbc33e85f4bafa36e"
+};
+
+let app, db, auth;
+
+function tryInitFirebase() {
+  try {
+    app = initializeApp(FIREBASE_CONFIG);
+    db = getDatabase(app);
+    auth = getAuth(app);
+    document.getElementById('loaderSub').textContent = 'Checking auth…';
+    onAuthStateChanged(auth, user => {
+      if (user) { initApp(user); }
+      else { window.location.href = 'login.html'; }
+    });
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    window.location.href = 'login.html';
+  }
+}
+setTimeout(tryInitFirebase, 100);
+
+// ─── STATE ────────────────────────────────────────────────────
+let cu = null, isOnline = false;
+let activeRideId = null, activeRideData = null;
+let pendingAcceptId = null, pendingAcceptData = null;
+let onlineStartTime = null;
+let statsToday = { rides:0, earned:0 };
+let globalRequestsUnsub = null, chatUnsub = null;
+let ridePhase = 'pickup';
+let cancelMode = null, pendingDeclineId = null;
+let selectedReasonText = null;
+let chatMessages = [], chatUnread = 0;
+let knownRequestIds = new Set();
+let currentHistoryTab = 'all';
+let allTrips = [], allCanceled = [];
+let declinedRideIds = new Set(JSON.parse(localStorage.getItem('vynix_declined_rides') || '[]'));
+let navStepsCollapsed = false;
+let userIsPanning = false;
+let panningTimeout = null;
+let panelHiddenForNav = false;
+
+// Panel drag state
+let panelState = 'mid'; // 'peek' | 'mid' | 'expanded'
+let dragStartY = 0, dragStartTranslate = 0, isDragging = false, currentTranslate = 0;
+
+// Swipe state (for nav tabs)
+let swipeStartX = 0, swipeStartY = 0, swipeTracking = false;
+
+// ─── DARK MODE ────────────────────────────────────────────────
+function initDarkMode() {
+  const saved = localStorage.getItem('vynix_dark_mode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (saved === null && prefersDark)) {
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('dmIcon').textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('dmIcon').textContent = '🌙';
+  }
+}
+window.toggleDarkMode = function() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('vynix_dark_mode','light');
+    document.getElementById('dmIcon').textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme','dark');
+    localStorage.setItem('vynix_dark_mode','dark');
+    document.getElementById('dmIcon').textContent = '☀️';
+  }
+  if (driverMap) {
+    const newIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    driverMap.setStyle(newIsDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12');
+  }
+};
+initDarkMode();
+
+// ─── NAV STATE ────────────────────────────────────────────────
+let navSteps = [], navCurrentStep = 0, navMode = null;
+let navRouteCoords = [];
+let driverLngLat = [28.9934, -24.1991];
+let isNavigating = false;
+
+// ─── MAP ──────────────────────────────────────────────────────
+const TK = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
+mapboxgl.accessToken = TK;
+let driverMap, driverMarker, destMarker = null;
+const ROUTE_SRC = 'nav-route', ROUTE_L = 'nav-route-l', ROUTE_LBG = 'nav-route-lbg';
+
+// ─── AUDIO ────────────────────────────────────────────────────
+let audioCtx = null;
+function playNotif() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    [0, .18, .36].forEach((t, i) => {
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime([880,1100,1320][i], audioCtx.currentTime + t);
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + t);
+      gain.gain.linearRampToValueAtTime(.35, audioCtx.currentTime + t + .05);
+      gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .28);
+      osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + .3);
+    });
+  } catch(e) {}
+}
+function resumeAudio() { if (audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
+document.addEventListener('click', resumeAudio, { once:true });
+document.addEventListener('touchstart', resumeAudio, { once:true });
+
+// ─── APP INIT ─────────────────────────────────────────────────
+function initApp(userData) {
+  document.getElementById('initLoader').classList.add('hide');
+  document.getElementById('appShell').classList.add('ready');
+  cu = userData;
+  updateUI(cu);
+  loadTodayStats();
+  loadTripHistory();
+  loadProfileDetails();
+  if (!driverMap) initMap();
+  watchLocation();
+  loadVehicleInfo();
+  listenToDatabase();
+  initPanelDrag();
+  initSwipeNav();
+  if (localStorage.getItem('vynix_driver_status') === 'online') {
+    goOnline();
+  } else {
+    goOffline();
+  }
+}
+
+window.doSignOut = () => {
+  if (isOnline) goOffline();
+  localStorage.removeItem('vynix_driver_status');
+  signOut(auth).catch(()=>{}).finally(() => { window.location.href = 'login.html'; });
+};
+
+// ─── SWIPE GESTURE FOR BOTTOM NAV ────────────────────────────
+const PAGE_ORDER = ['map', 'earnings', 'history', 'account'];
+
+function initSwipeNav() {
+  const shell = document.getElementById('appShell');
+  let swipeStartX = 0, swipeStartY = 0, swipeActive = false, didSwipe = false;
+  const SWIPE_THRESHOLD = 60;
+  const ANGLE_THRESHOLD = 35; // degrees from horizontal
+
+  function onTouchStart(e) {
+    const t = e.touches[0];
+    swipeStartX = t.clientX;
+    swipeStartY = t.clientY;
+    swipeActive = true;
+    didSwipe = false;
+  }
+
+  function onTouchMove(e) {
+    if (!swipeActive) return;
+    const t = e.touches[0];
+    const dx = t.clientX - swipeStartX;
+    const dy = t.clientY - swipeStartY;
+    // Only horizontal swipes (angle check)
+    if (Math.abs(dy) > Math.abs(dx) * Math.tan(ANGLE_THRESHOLD * Math.PI / 180)) {
+      swipeActive = false; return;
+    }
+    if (Math.abs(dx) > 8) didSwipe = true;
+  }
+
+  function onTouchEnd(e) {
+    if (!swipeActive || !didSwipe) { swipeActive = false; return; }
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeStartX;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) { swipeActive = false; return; }
+    // Don't swipe if a sheet/modal is open or panel is being dragged or map is active
+    if (document.getElementById('chatSheet').classList.contains('show')) { swipeActive = false; return; }
+    if (document.getElementById('cancelReasonModal').classList.contains('show')) { swipeActive = false; return; }
+    if (document.getElementById('acceptModal').classList.contains('show')) { swipeActive = false; return; }
+    if (isDragging) { swipeActive = false; return; }
+
+    const currentPage = PAGE_ORDER.find(p => {
+      const el = document.getElementById(p === 'map' ? 'page-map' : `page-${p}`);
+      return el && el.classList.contains('show');
+    }) || 'map';
+    const idx = PAGE_ORDER.indexOf(currentPage);
+    if (dx < 0 && idx < PAGE_ORDER.length - 1) {
+      switchPage(PAGE_ORDER[idx + 1]);
+    } else if (dx > 0 && idx > 0) {
+      switchPage(PAGE_ORDER[idx - 1]);
+    }
+    swipeActive = false;
+  }
+
+  shell.addEventListener('touchstart', onTouchStart, { passive:true });
+  shell.addEventListener('touchmove', onTouchMove, { passive:true });
+  shell.addEventListener('touchend', onTouchEnd, { passive:true });
+}
+
+// ─── UNIFIED FIREBASE LISTENER ────────────────────────────────
+function listenToDatabase() {
+  if (!cu || !db) return;
+  if (globalRequestsUnsub) return;
+  globalRequestsUnsub = onValue(ref(db, 'ride_requests'), snap => {
+    processRideData(snap.val() || {});
+  });
+}
+
+function processRideData(allData) {
+  const mine = Object.entries(allData).find(([,v]) => v.status === 'accepted' && v.driverId === cu.uid);
+  if (mine) {
+    if (!isOnline) { isOnline = true; setOnlineUI(true); localStorage.setItem('vynix_driver_status','online'); }
+    const [id, r] = mine;
+    if (activeRideId !== id) {
+      activeRideId = id; activeRideData = r;
+      showActiveRide(r); setPanelState('mid');
+    } else {
+      activeRideData = r;
+      if (r.chat) {
+        const riderMsgs = Object.values(r.chat).filter(m => m.sender === 'rider' && !m.readByDriver);
+        if (riderMsgs.length > 0 && !document.getElementById('chatSheet').classList.contains('show')) {
+          chatUnread = riderMsgs.length; updateChatBadge();
+        }
+      }
+    }
+    if (r.arrived && ridePhase !== 'riding') {
+      ridePhase = 'riding';
+      document.getElementById('phase-pickup').classList.remove('active');
+      document.getElementById('phase-riding').classList.add('active');
+      document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+      if (r.arrivedPin) {
+        document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin;
+        document.getElementById('ar-pin').textContent = r.arrivedPin;
+        document.getElementById('arrivedPinCard').classList.add('show');
+      }
+    }
+    document.getElementById('reqLabel').style.display = 'none';
+    document.getElementById('rideReqList').style.display = 'none';
+  } else {
+    if (activeRideId) {
+      activeRideId = null; activeRideData = null;
+      document.getElementById('activeRideCard').classList.remove('show');
+      document.getElementById('arrivedPinCard').classList.remove('show');
+      resetPhaseUI();
+      document.getElementById('reqLabel').style.display = '';
+      document.getElementById('rideReqList').style.display = '';
+      if (isNavigating) stopNavigation();
+      if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+      showToast('Active ride was concluded or canceled.');
+    }
+    if (isOnline) {
+      const pending = Object.entries(allData).filter(([id,v]) => v.status === 'pending' && !v.canceledAt && !declinedRideIds.has(id));
+      pending.forEach(([id,r]) => {
+        if (!knownRequestIds.has(id)) { knownRequestIds.add(id); showRideNotif(r); }
+      });
+      [...knownRequestIds].forEach(id => { if (!pending.find(([pid])=>pid===id)) knownRequestIds.delete(id); });
+      renderRideRequests(pending);
+      const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', pending.length > 0);
+    } else {
+      document.getElementById('rideReqList').innerHTML = '<div class="no-rides"><div class="no-rides-ico">🚗</div>Go online to see ride requests</div>';
+      const dot = document.getElementById('bn-map-dot'); if(dot) dot.classList.toggle('show', false);
+    }
+  }
+}
+
+// ─── SHOW ACTIVE RIDE ─────────────────────────────────────────
+function showActiveRide(r) {
+  document.getElementById('activeRideCard').classList.add('show');
+  document.getElementById('ar-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+  document.getElementById('ar-av').textContent = ini2(r.riderName||'R');
+  document.getElementById('ar-name').textContent = r.riderName || 'Rider';
+  document.getElementById('ar-dest').textContent = (r.destination||'—').substring(0,40);
+  document.getElementById('ar-pin').textContent = r.securityPin || r.arrivedPin || '—';
+  document.getElementById('ar-type').textContent = r.rideType || 'VynixGo';
+  document.getElementById('ar-seats').textContent = r.capacity || 4;
+  document.getElementById('ar-pickup-txt').textContent = r.pickup || '—';
+  document.getElementById('ar-drop-txt').textContent = r.destination || '—';
+  if (!r.arrived) {
+    ridePhase = 'pickup';
+    document.getElementById('phase-pickup').classList.add('active');
+    document.getElementById('phase-riding').classList.remove('active');
+    document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
+  } else {
+    ridePhase = 'riding';
+    document.getElementById('phase-pickup').classList.remove('active');
+    document.getElementById('phase-riding').classList.add('active');
+    document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+    document.getElementById('arrivedPinDisplay').textContent = r.arrivedPin || '—';
+    document.getElementById('ar-pin').textContent = r.arrivedPin || '—';
+    document.getElementById('arrivedPinCard').classList.add('show');
+  }
+  setTimeout(() => { const ps = document.getElementById('panelScroll'); if(ps) ps.scrollTop = 0; }, 100);
+}
+
+function resetPhaseUI() {
+  ridePhase = 'pickup';
+  document.getElementById('phase-pickup').classList.add('active');
+  document.getElementById('phase-riding').classList.remove('active');
+  document.getElementById('ar-phase-label').textContent = 'En Route to Pickup';
+}
+
+// ─── PANEL STATE MACHINE ─────────────────────────────────────
+// States: 'peek' (just handle), 'mid' (half), 'expanded' (full, map barely visible)
+function setPanelState(state, smooth = true) {
+  panelState = state;
+  const panel = document.getElementById('driverPanel');
+  panel.style.transition = smooth ? '' : 'none';
+  panel.classList.remove('peek','mid','expanded','nav-hidden');
+  panel.classList.add(state);
+  const subEl = document.getElementById('pcrSub');
+  if (subEl) subEl.textContent = state === 'expanded' ? 'Swipe down to collapse' : 'Swipe up to expand';
+  setTimeout(() => driverMap?.resize(), 420);
+}
+
+// ─── PANEL DRAG ───────────────────────────────────────────────
+function initPanelDrag() {
+  const panel = document.getElementById('driverPanel');
+  const handle = document.getElementById('panelHandle');
+  const scroll = document.getElementById('panelScroll');
+
+  function getCSSTranslateY() {
+    const computed = window.getComputedStyle(panel);
+    const matrix = new DOMMatrix(computed.transform);
+    return matrix.m42;
+  }
+
+  function startDrag(clientY) {
+    if (panel.classList.contains('nav-hidden')) return;
+    isDragging = true;
+    dragStartY = clientY;
+    dragStartTranslate = getCSSTranslateY();
+    panel.style.transition = 'none';
+  }
+
+  function moveDrag(clientY) {
+    if (!isDragging) return;
+    if (panelState === 'expanded' && scroll.scrollTop > 0) { isDragging = false; panel.style.transition=''; return; }
+    const delta = clientY - dragStartY;
+    const PANEL_FULL = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-full')) / 100 * window.innerHeight;
+    const PEEK = PANEL_FULL - 88;
+    let t = dragStartTranslate + delta;
+    t = Math.max(0, Math.min(PEEK, t));
+    currentTranslate = t;
+    panel.style.transform = `translateY(${t}px)`;
+  }
+
+  function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    panel.style.transition = '';
+    panel.style.transform = '';
+
+    const PANEL_FULL = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-full')) / 100 * window.innerHeight;
+    const PEEK_T = PANEL_FULL - 88;
+    const MID_T = PANEL_FULL * (1 - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panel-mid')) / 100);
+
+    // Snap: if translate < 30% of full -> expanded; if 30-70% -> mid; else -> peek
+    const ratio = currentTranslate / PANEL_FULL;
+    if (ratio < 0.25) {
+      setPanelState('expanded');
+    } else if (ratio < 0.6) {
+      setPanelState('mid');
+    } else {
+      setPanelState('peek');
+    }
+  }
+
+  // Touch on handle
+  handle.addEventListener('touchstart', (e) => {
+    startDrag(e.touches[0].clientY);
+  }, { passive:true });
+  handle.addEventListener('touchmove', (e) => {
+    moveDrag(e.touches[0].clientY);
+    if (isDragging && e.cancelable) e.preventDefault();
+  }, { passive:false });
+  handle.addEventListener('touchend', endDrag);
+
+  // Also allow drag from peek row
+  const peekRow = panel.querySelector('.panel-peek-row');
+  peekRow.addEventListener('touchstart', (e) => {
+    if (panelState !== 'expanded') startDrag(e.touches[0].clientY);
+  }, { passive:true });
+  peekRow.addEventListener('touchmove', (e) => {
+    moveDrag(e.touches[0].clientY);
+    if (isDragging && e.cancelable) e.preventDefault();
+  }, { passive:false });
+  peekRow.addEventListener('touchend', endDrag);
+
+  // Tap handle to toggle
+  handle.addEventListener('click', () => {
+    if (isDragging) return;
+    if (panelState === 'expanded') setPanelState('mid');
+    else if (panelState === 'mid') setPanelState('expanded');
+    else setPanelState('mid');
+  });
+}
+
+// ─── ACCEPT MODAL ─────────────────────────────────────────────
+window.openAcceptModal = function(id) {
+  if (!isOnline) { showToast('Go online first to accept rides'); return; }
+  if (activeRideId) { showToast('You already have an active ride'); return; }
+  get(ref(db, `ride_requests/${id}`)).then(snap => {
+    const r = snap.val();
+    if (!r) { showToast('Ride no longer available'); return; }
+    if (r.status !== 'pending') { showToast('Ride already taken'); return; }
+    pendingAcceptId = id; pendingAcceptData = r;
+    document.getElementById('am-rider').textContent = r.riderName || 'Unknown';
+    document.getElementById('am-type').textContent = r.rideType || 'VynixGo';
+    document.getElementById('am-pickup').textContent = (r.pickup || '—').substring(0, 40);
+    document.getElementById('am-dest').textContent = (r.destination || '—').substring(0, 40);
+    document.getElementById('am-dist').textContent = r.distKm ? parseFloat(r.distKm).toFixed(1) + ' km' : '—';
+    document.getElementById('am-dur').textContent = r.tripMins ? r.tripMins + ' min' : '—';
+    document.getElementById('am-fare').textContent = `R ${parseFloat(r.fare||0).toFixed(2)}`;
+    const btn = document.getElementById('acceptConfirmBtn'); btn.disabled=false; btn.textContent='✓ Accept Ride';
+    document.getElementById('acceptModal').classList.add('show');
+  }).catch(e => showToast('Error loading ride: ' + e.message));
+};
+window.closeAcceptModal = function() {
+  document.getElementById('acceptModal').classList.remove('show');
+  pendingAcceptId = null; pendingAcceptData = null;
+};
+window.confirmAccept = async function() {
+  if (!pendingAcceptId || !cu) { showToast('No ride selected'); return; }
+  const btn = document.getElementById('acceptConfirmBtn');
+  btn.disabled=true; btn.textContent='Accepting…';
+  try {
+    const snap = await get(ref(db, `ride_requests/${pendingAcceptId}`));
+    const r = snap.val();
+    if (!r) { showToast('Ride no longer exists'); closeAcceptModal(); return; }
+    if (r.status !== 'pending') { showToast('Ride already taken'); closeAcceptModal(); return; }
+    const vSnap = await get(ref(db, `drivers/${cu.uid}/vehicle`));
+    const vehicle = vSnap.val() || {};
+    await update(ref(db, `ride_requests/${pendingAcceptId}`), {
+      status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver',
+      driverEmail:cu.email||'', driverVehicle:vehicle.car||'', driverPlate:vehicle.plate||'', acceptedAt:Date.now()
+    });
+    activeRideId = pendingAcceptId;
+    activeRideData = { ...r, status:'accepted', driverId:cu.uid, driverName:cu.displayName||'Driver' };
+    closeAcceptModal();
+    showActiveRide(activeRideData);
+    setPanelState('mid');
+    document.getElementById('reqLabel').style.display='none';
+    document.getElementById('rideReqList').style.display='none';
+    showToast('🎉 Ride accepted! Navigate to pickup.');
+    statsToday.rides++;
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+    listenChat();
+  } catch(e) {
+    showToast('Error accepting: ' + e.message);
+    btn.disabled=false; btn.textContent='✓ Accept Ride';
+  }
+};
+
+// ─── COMPLETE RIDE ─────────────────────────────────────────────
+window.completeRide = async function() {
+  if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
+  if (!confirm('Complete this ride?')) return;
+  try {
+    const fare = parseFloat(activeRideData.fare || 0);
+    const tripData = { ...activeRideData, status:'completed', completedAt:Date.now(), date:Date.now(), driverId:cu.uid };
+    await push(ref(db, `drivers/${cu.uid}/trips`), tripData);
+    const earnSnap = await get(ref(db, `drivers/${cu.uid}/earnings`));
+    const current = earnSnap.val() || { total:0, trips:0 };
+    await set(ref(db, `drivers/${cu.uid}/earnings`), { total:(current.total||0)+fare, trips:(current.trips||0)+1 });
+    await remove(ref(db, `ride_requests/${activeRideId}`));
+    statsToday.earned += fare; statsToday.rides++;
+    document.getElementById('stat-earn').textContent = 'R'+statsToday.earned.toFixed(0);
+    document.getElementById('stat-rides').textContent = statsToday.rides;
+    if (chatUnsub) { chatUnsub(); chatUnsub=null; }
+    activeRideId=null; activeRideData=null; ridePhase='pickup';
+    chatMessages=[]; chatUnread=0; updateChatBadge();
+    document.getElementById('activeRideCard').classList.remove('show');
+    document.getElementById('arrivedPinCard').classList.remove('show');
+    resetPhaseUI();
+    document.getElementById('reqLabel').style.display='';
+    document.getElementById('rideReqList').style.display='';
+    if (isNavigating) stopNavigation();
+    loadTripHistory(); loadTodayStats();
+    showToast(`✅ Ride complete! +R${fare.toFixed(2)}`);
+  } catch(e) { showToast('Error completing ride: ' + e.message); }
+};
+
+// ─── MAP INIT ─────────────────────────────────────────────────
+function initMap() {
+  try {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    driverMap = new mapboxgl.Map({
+      container:'driverMap',
+      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12',
+      center:driverLngLat, zoom:14, pitch:45, bearing:0, attributionControl:false
+    });
+    driverMap.addControl(new mapboxgl.AttributionControl({ compact:true }), 'bottom-right');
+    driverMap.on('style.load', () => {
+      try {
+        const layers = driverMap.getStyle().layers;
+        const labelId = layers.find(l => l.type==='symbol' && l.layout['text-field'])?.id;
+        const curDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (!curDark) {
+          driverMap.addLayer({ id:'3d-buildings', source:'composite', 'source-layer':'building', filter:['==','extrude','true'], type:'fill-extrusion', minzoom:15, paint:{'fill-extrusion-color':'#e8edf2','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':.6} }, labelId);
+        }
+      } catch(e) {}
+      if (navRouteCoords.length > 0) drawRoute(navRouteCoords);
+    });
+
+    const onUserInteraction = () => {
+      userIsPanning = true;
+      if (isNavigating) document.getElementById('recenterBtn').classList.add('show');
+    };
+    driverMap.on('dragstart', onUserInteraction);
+    driverMap.on('touchstart', onUserInteraction);
+    driverMap.on('wheel', onUserInteraction);
+
+    const el = document.createElement('div');
+    el.innerHTML = '<div class="driver-marker-halo"><div class="driver-marker-core"></div></div>';
+    driverMarker = new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat(driverLngLat).addTo(driverMap);
+    setTimeout(() => driverMap.resize(), 200);
+  } catch(e) {
+    document.getElementById('driverMap').innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);font-size:13px;font-weight:600"><div style="font-size:32px">🗺️</div><div>Map unavailable</div></div>';
+  }
+}
+
+function updateDriverLocation(lat, lng) {
+  driverLngLat = [lng, lat];
+  driverMarker?.setLngLat([lng, lat]);
+  if (!userIsPanning) driverMap?.easeTo({ center:[lng, lat], zoom:15, speed:.5 });
+  if (isOnline && db && cu) {
+    set(ref(db, `active_drivers/${cu.uid}`), { lat, lng, name:cu.displayName||'Driver', uid:cu.uid, online:true, timestamp:Date.now() }).catch(()=>{});
+  }
+}
+function watchLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.watchPosition(
+    pos => updateDriverLocation(pos.coords.latitude, pos.coords.longitude),
+    () => {}, { enableHighAccuracy:true, maximumAge:3000 }
+  );
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────
+const MICONS = {'turn-left':'↰','turn-right':'↱','turn-slight-left':'↖','turn-slight-right':'↗','turn-sharp-left':'⬅','turn-sharp-right':'➡','uturn':'↩','continue':'⬆','merge':'🔀','on ramp':'↗','off ramp':'↙','arrive':'🏁','depart':'🚗','roundabout':'🔄','rotary':'🔄'};
+const mIcon = t => MICONS[t]||'⬆';
+const mToStr = m => m >= 1000 ? (m/1000).toFixed(1)+' km' : Math.round(m)+' m';
+const sToStr = s => { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60); return h>0?h+'h '+m+'m':m<1?'<1 min':m+' min'; };
+
+function hidePanelForNav() {
+  panelHiddenForNav = true;
+  const panel = document.getElementById('driverPanel');
+  panel.classList.remove('peek','mid','expanded');
+  panel.classList.add('nav-hidden');
+  document.getElementById('mapWrap').classList.add('nav-active','nav-fullscreen');
+  document.getElementById('showPanelBtn').classList.add('visible');
+  setTimeout(() => driverMap?.resize(), 420);
+}
+function restorePanelFromNav() {
+  panelHiddenForNav = false;
+  const panel = document.getElementById('driverPanel');
+  panel.classList.remove('nav-hidden');
+  document.getElementById('mapWrap').classList.remove('nav-fullscreen');
+  document.getElementById('showPanelBtn').classList.remove('visible');
+}
+
+window.showPanelFromNav = function() {
+  restorePanelFromNav();
+  setPanelState('mid');
+};
+
+window.startNavigation = async function(mode) {
+  if (!activeRideData) { showToast('No active ride'); return; }
+  navMode = mode; isNavigating = true; userIsPanning = false;
+  hidePanelForNav();
+  document.getElementById('navHud').classList.add('show');
+  document.getElementById('recenterBtn').classList.remove('show');
+  document.getElementById('navInstMain').textContent = 'Fetching route…';
+  document.getElementById('navManeuverBox').textContent = '⏳';
+  const btnId = mode === 'pickup' ? 'btnNavPickup' : 'btnNavDest';
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.classList.add('navigating'); btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigating…'; }
+  const destStr = mode === 'pickup' ? (activeRideData.pickup||'') : (activeRideData.destination||'');
+  try {
+    await fetchAndRenderRoute(driverLngLat, destStr);
+    showToast('Route loaded — follow the blue line');
+  } catch(e) { showToast('Route error: '+e.message); }
+};
+
+async function geocodeAddress(addr) {
+  const q = encodeURIComponent(addr+', South Africa');
+  const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${TK}&country=ZA&limit=1`);
+  const data = await res.json();
+  if (!data.features?.length) throw new Error('Could not locate: '+addr);
+  return data.features[0].center;
+}
+
+async function fetchAndRenderRoute(origin, destAddr) {
+  const dest = await geocodeAddress(destAddr);
+  const [olng,olat] = origin, [dlng,dlat] = dest;
+  const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${olng},${olat};${dlng},${dlat}?steps=true&geometries=geojson&access_token=${TK}&overview=full`);
+  const data = await res.json();
+  if (!data.routes?.length) throw new Error('No route found');
+  const route = data.routes[0], leg = route.legs[0];
+  navSteps = leg.steps; navCurrentStep = 0; navRouteCoords = route.geometry.coordinates;
+  drawRoute(navRouteCoords);
+  if (destMarker) destMarker.remove();
+  const dEl = document.createElement('div');
+  dEl.style.cssText = 'width:20px;height:20px;background:#EF4444;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 12px rgba(0,0,0,.4)';
+  destMarker = new mapboxgl.Marker({ element:dEl }).setLngLat(dest).addTo(driverMap);
+  document.getElementById('navETA').textContent = sToStr(route.duration);
+  document.getElementById('navDistTotal').textContent = mToStr(route.distance);
+  const closeUp = navRouteCoords.slice(0, Math.max(8, Math.floor(navRouteCoords.length*.15)));
+  closeUp.push(driverLngLat);
+  const bounds = closeUp.reduce((b,c) => b.extend(c), new mapboxgl.LngLatBounds(closeUp[0], closeUp[0]));
+  driverMap.fitBounds(bounds, { padding:{top:100,bottom:80,left:30,right:30}, bearing:computeBearing(navRouteCoords), pitch:55, duration:1000 });
+  renderNavSteps(); updateCurrentStep();
+}
+
+function computeBearing(coords) {
+  if (coords.length < 2) return 0;
+  const [lng1,lat1] = coords[0], [lng2,lat2] = coords[Math.min(5,coords.length-1)];
+  const dL = lng2-lng1;
+  const y = Math.sin(dL*Math.PI/180)*Math.cos(lat2*Math.PI/180);
+  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dL*Math.PI/180);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+function drawRoute(coords) {
+  if (!driverMap) return;
+  try {
+    if (driverMap.getLayer(ROUTE_LBG)) driverMap.removeLayer(ROUTE_LBG);
+    if (driverMap.getLayer(ROUTE_L)) driverMap.removeLayer(ROUTE_L);
+    if (driverMap.getSource(ROUTE_SRC)) driverMap.removeSource(ROUTE_SRC);
+  } catch(e) {}
+  driverMap.addSource(ROUTE_SRC, { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:coords } } });
+  driverMap.addLayer({ id:ROUTE_LBG, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1E40AF','line-width':12,'line-opacity':.25} });
+  driverMap.addLayer({ id:ROUTE_L, type:'line', source:ROUTE_SRC, layout:{'line-cap':'round','line-join':'round'}, paint:{'line-color':'#1A3BFF','line-width':7,'line-opacity':1} });
+}
+
+function renderNavSteps() {
+  const list = document.getElementById('navStepsList');
+  list.innerHTML = navSteps.map((s,i) => {
+    const isCur=i===navCurrentStep, isDone=i<navCurrentStep;
+    const nc=isDone?'done':isCur?'cur':'', rc=isCur?'current-step':'';
+    return `<div class="nav-step-row ${rc}">
+      <div class="nav-step-num ${nc}">${isDone?'✓':isCur?mIcon(s.maneuver?.type):i+1}</div>
+      <div class="nav-step-body"><div class="nav-step-text">${s.maneuver?.instruction||'Continue'}</div><div class="nav-step-d">${mToStr(s.distance||0)}</div></div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.nav-step-row')[navCurrentStep]?.scrollIntoView({ block:'center', behavior:'smooth' });
+}
+function updateCurrentStep() {
+  if (!navSteps.length) return;
+  const s = navSteps[navCurrentStep];
+  document.getElementById('navManeuverBox').textContent = mIcon(s.maneuver?.type||'continue');
+  document.getElementById('navDistLbl').textContent = 'IN '+mToStr(s.distance||0);
+  document.getElementById('navInstMain').textContent = s.maneuver?.instruction||'Continue';
+}
+window.toggleNavSteps = function() {
+  navStepsCollapsed = !navStepsCollapsed;
+  document.getElementById('navStepsPanel').classList.toggle('collapsed', navStepsCollapsed);
+};
+window.stopNavigation = function() {
+  isNavigating = false; userIsPanning = false;
+  document.getElementById('navHud').classList.remove('show');
+  document.getElementById('recenterBtn').classList.remove('show');
+  restorePanelFromNav();
+  document.getElementById('mapWrap').classList.remove('nav-active','nav-fullscreen');
+  const bp=document.getElementById('btnNavPickup'); const bd=document.getElementById('btnNavDest');
+  if(bp){bp.classList.remove('navigating');bp.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Pickup';}
+  if(bd){bd.classList.remove('navigating');bd.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Navigate to Dest';}
+  driverMap?.easeTo({ center:driverLngLat, zoom:15, pitch:45, bearing:0, duration:800 });
+  navMode=null; navStepsCollapsed=false;
+  document.getElementById('navStepsPanel').classList.remove('collapsed');
+  setPanelState('mid');
+};
+window.recenterMap = function() {
+  userIsPanning = false;
+  document.getElementById('recenterBtn').classList.remove('show');
+  driverMap?.flyTo({ center:driverLngLat, zoom:16, pitch:60, speed:1.4 });
+};
+
+// ─── PIN VERIFICATION ─────────────────────────────────────────
+window.driverArrived = async function() {
+  if (!activeRideId || !activeRideData) return;
+  const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+  await update(ref(db, `ride_requests/${activeRideId}`), { arrivedPin:newPin, arrived:true }).catch(()=>{});
+  activeRideData.arrivedPin = newPin; activeRideData.arrived = true;
+  document.getElementById('arrivedPinDisplay').textContent = newPin;
+  document.getElementById('arrivedPinCard').classList.add('show');
+  document.getElementById('ar-pin').textContent = newPin;
+  showPinOverlay(newPin);
+  showToast('📍 Marked arrived — share PIN with rider');
+};
+function showPinOverlay(pin) {
+  document.getElementById('pinDisplay').innerHTML = pin.split('').map(d => `<div class="pin-digit">${d}</div>`).join('');
+  document.getElementById('pinInputRow').innerHTML = Array.from({length:4},(_,i) =>
+    `<input class="pin-input-digit" id="pinI${i}" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="pinDigitInput(event,${i})">`
+  ).join('');
+  document.getElementById('pinError').style.display = 'none';
+  document.getElementById('pinOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('pinI0')?.focus(), 220);
+}
+window.closePinOverlay = function() {
+  document.getElementById('pinOverlay').classList.remove('show');
+};
+window.pinDigitInput = function(e, idx) {
+  const val = e.target.value.replace(/\D/g,''); e.target.value = val;
+  if (val && idx < 3) document.getElementById(`pinI${idx+1}`)?.focus();
+};
+window.verifyPin = function() {
+  const entered = [0,1,2,3].map(i => document.getElementById(`pinI${i}`)?.value||'').join('');
+  const expected = activeRideData?.arrivedPin || '';
+  if (entered === expected) {
+    document.getElementById('pinOverlay').classList.remove('show');
+    ridePhase = 'riding';
+    document.getElementById('phase-pickup').classList.remove('active');
+    document.getElementById('phase-riding').classList.add('active');
+    document.getElementById('ar-phase-label').textContent = 'Ride In Progress';
+    showToast('✅ PIN verified — enjoy the ride!');
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el){el.value='';el.style.borderColor='var(--red)';} });
+    setTimeout(() => {
+      document.getElementById('pinError').style.display='none';
+      [0,1,2,3].forEach(i => { const el=document.getElementById(`pinI${i}`); if(el) el.style.borderColor=''; });
+    }, 2200);
+    document.getElementById('pinI0')?.focus();
+  }
+};
+
+// ─── CHAT ─────────────────────────────────────────────────────
+window.openChat = function() {
+  if (!activeRideId || !activeRideData) { showToast('No active ride'); return; }
+  document.getElementById('chatAv').textContent = ini2(activeRideData.riderName||'R');
+  document.getElementById('chatRiderName').textContent = activeRideData.riderName||'Rider';
+  document.getElementById('chatSheet').classList.add('show');
+  chatUnread = 0; updateChatBadge();
+  listenChat(); markChatMessagesRead();
+  setTimeout(() => document.getElementById('chatInput')?.focus(), 300);
+};
+window.closeChat = function() { document.getElementById('chatSheet').classList.remove('show'); };
+
+function listenChat() {
+  if (!activeRideId || !db || chatUnsub) return;
+  chatUnsub = onValue(ref(db, `ride_requests/${activeRideId}/chat`), snap => {
+    const msgs = snap.val() || {};
+    const all = Object.entries(msgs).map(([k,v]) => ({...v,_key:k})).sort((a,b) => a.ts-b.ts);
+    const chatOpen = document.getElementById('chatSheet').classList.contains('show');
+    const unread = all.filter(m => m.sender === 'rider' && !m.readByDriver).length;
+    if (chatOpen) { chatUnread = 0; markChatMessagesRead(); }
+    else if (unread > 0) { chatUnread = unread; showTypingIndicator(); }
+    chatMessages = all; renderChatMsgs();
+    if (chatOpen) scrollChatBottom();
+    updateChatBadge();
+  });
+}
+
+function markChatMessagesRead() {
+  if (!activeRideId || !chatMessages.length) return;
+  chatMessages.forEach(m => {
+    if (m.sender === 'rider' && !m.readByDriver && m._key) {
+      update(ref(db, `ride_requests/${activeRideId}/chat/${m._key}`), { readByDriver:true }).catch(()=>{});
+    }
+  });
+}
+let typingTimer = null;
+function showTypingIndicator() {
+  const el = document.getElementById('chatTypingIndicator'); if(!el) return;
+  el.classList.add('show');
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+function renderChatMsgs() {
+  const el = document.getElementById('chatMessages');
+  if (!chatMessages.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;font-weight:600">Say hello to your rider 👋</div>'; return; }
+  el.innerHTML = chatMessages.map(m => {
+    const mine = m.sender === 'driver';
+    const time = m.ts ? new Date(m.ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '';
+    const readIcon = mine ? (m.readByRider ? ' ✓✓' : ' ✓') : '';
+    return `<div class="chat-msg ${mine?'mine':'theirs'}"><div class="chat-bubble">${escHtml(m.text)}</div><div class="chat-meta">${time}${readIcon}</div></div>`;
+  }).join('');
+}
+function scrollChatBottom() {
+  const el = document.getElementById('chatMessages'); if(el) setTimeout(()=>el.scrollTop=el.scrollHeight,60);
+}
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function updateChatBadge() {
+  ['chatBadge1','chatBadge2'].forEach(id => {
+    const el=document.getElementById(id); if(!el) return;
+    el.textContent=chatUnread; el.classList.toggle('show',chatUnread>0);
+  });
+}
+window.sendChatMsg = async function() {
+  const inp=document.getElementById('chatInput'); const text=inp.value.trim(); if(!text||!activeRideId) return;
+  inp.value=''; inp.style.height=''; await _pushChat(text);
+};
+window.sendQuickReply = async function(text) {
+  if (!activeRideId) { showToast('No active ride'); return; }
+  await _pushChat(text);
+};
+async function _pushChat(text) {
+  if (!activeRideId) return;
+  try {
+    await push(ref(db, `ride_requests/${activeRideId}/chat`), { text, sender:'driver', ts:Date.now(), readByRider:false, readByDriver:true });
+    scrollChatBottom();
+  } catch(e) { showToast('Failed to send message'); }
+}
+window.chatKeydown = function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendChatMsg();} };
+window.autoResizeTextarea = function(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,90)+'px'; };
+
+// ─── CANCELLATION ─────────────────────────────────────────────
+window.selectCancelReason = function(el,reason) {
+  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected'); selectedReasonText=reason;
+  const btn=document.getElementById('cmConfirmBtn'); btn.disabled=false; btn.style.opacity='1';
+};
+window.closeCancelModal = function() {
+  document.getElementById('cancelReasonModal').classList.remove('show');
+  cancelMode=null; pendingDeclineId=null; selectedReasonText=null;
+  document.querySelectorAll('.cm-reason').forEach(r=>r.classList.remove('selected'));
+  const btn=document.getElementById('cmConfirmBtn'); btn.disabled=true; btn.style.opacity='.5';
+};
+window.openDeclineModal = function(id) {
+  cancelMode='decline'; pendingDeclineId=id;
+  document.getElementById('cm-title').textContent='Why are you declining?';
+  document.getElementById('cm-sub').textContent='Select a reason.';
+  document.getElementById('cmConfirmBtn').textContent='Decline Ride';
+  document.getElementById('cancelReasonModal').classList.add('show');
+};
+window.openCancelActiveModal = function() {
+  cancelMode='active';
+  document.getElementById('cm-title').textContent='Why are you cancelling?';
+  document.getElementById('cm-sub').textContent='This will return the ride to the queue.';
+  document.getElementById('cmConfirmBtn').textContent='Cancel Ride';
+  document.getElementById('cancelReasonModal').classList.add('show');
+};
+window.confirmCancelAction = async function() {
+  if (!selectedReasonText) return;
+  if (cancelMode === 'decline') {
+    const id = pendingDeclineId;
+    window.closeCancelModal();
+    declinedRideIds.add(id);
+    localStorage.setItem('vynix_declined_rides', JSON.stringify([...declinedRideIds]));
+    try {
+      const snap = await get(ref(db,`ride_requests/${id}`));
+      await push(ref(db,`drivers/${cu.uid}/canceled_rides`), { ...(snap.val()||{}), canceledAt:Date.now(), cancelReason:selectedReasonText, canceledBy:'driver', type:'declined' });
+    } catch(e) {}
+    const el=document.getElementById(`req-${id}`);
+    if(el){el.style.transition='.25s var(--ease-smooth)';el.style.opacity='0';el.style.transform='scale(0.95)';setTimeout(()=>el.remove(),260);}
+    showToast('Ride declined and hidden');
+  } else if (cancelMode === 'active') {
+    window.closeCancelModal();
+    await cancelActiveRide(selectedReasonText);
+  }
+};
+
+async function cancelActiveRide(reason) {
+  if (!activeRideId || !cu) return;
+  try {
+    const snap = await get(ref(db,`ride_requests/${activeRideId}`));
+    await push(ref(db,`drivers/${cu.uid}/canceled_rides`), { ...(snap.val()||{}), canceledAt:Date.now(), cancelReason:reason, canceledBy:'driver', type:'active_canceled', originalRideId:activeRideId });
+    await update(ref(db,`ride_requests/${activeRideId}`), { status:'pending', driverId:null, driverName:null, acceptedAt:null, cancelReason:reason });
+    if(chatUnsub){chatUnsub();chatUnsub=null;}
+    activeRideId=null; activeRideData=null; ridePhase='pickup';
+    chatMessages=[]; chatUnread=0; updateChatBadge();
+    document.getElementById('activeRideCard').classList.remove('show');
+    document.getElementById('arrivedPinCard').classList.remove('show');
+    resetPhaseUI();
+    document.getElementById('reqLabel').style.display='';
+    document.getElementById('rideReqList').style.display='';
+    if(isNavigating) stopNavigation();
+    loadTripHistory(); showToast('Ride canceled: '+reason);
+  } catch(e) { showToast('Error canceling ride'); }
+}
+
+window.deleteRideRequest = async function(id) {
+  if(confirm("Permanently delete this ride request?")) {
+    try {
+      await remove(ref(db,`ride_requests/${id}`));
+      showToast('Ride permanently deleted');
+      const el=document.getElementById(`req-${id}`);
+      if(el){el.style.transition='.25s';el.style.opacity='0';el.style.transform='scale(0.95)';setTimeout(()=>el.remove(),260);}
+    } catch(e){showToast('Error deleting ride');}
+  }
+};
+
+// ─── NOTIFICATION BANNER ──────────────────────────────────────
+let notifTimer = null;
+function showRideNotif(r) {
+  const b=document.getElementById('rideNotifBanner');
+  document.getElementById('rnbSub').textContent=`${r.riderName||'Rider'} • R${parseFloat(r.fare||0).toFixed(2)} • ${(r.pickup||'Pickup').substring(0,35)}`;
+  b.classList.add('show'); playNotif();
+  if(notifTimer) clearTimeout(notifTimer);
+  notifTimer=setTimeout(()=>b.classList.remove('show'),7000);
+}
+window.dismissNotifBanner = function() {
+  document.getElementById('rideNotifBanner').classList.remove('show');
+  if(notifTimer) clearTimeout(notifTimer);
+};
+
+// ─── PROFILE EDIT — persist to Firebase & localStorage ───────
+function loadProfileDetails() {
+  // Try localStorage first (instant), then Firebase
+  const cached = JSON.parse(localStorage.getItem('vynix_profile') || 'null');
+  if (cached) applyProfileData(cached);
+  if (!cu || !db) return;
+  get(ref(db, `drivers/${cu.uid}/profile`)).then(snap => {
+    const data = snap.val();
+    if (data) {
+      localStorage.setItem('vynix_profile', JSON.stringify(data));
+      applyProfileData(data);
+    } else if (cu) {
+      // Seed from auth
+      const seed = { name: cu.displayName || 'Driver', phone: '', idnum: '', city: '' };
+      applyProfileData(seed);
+    }
+  }).catch(()=>{});
+}
+
+function applyProfileData(data) {
+  const name = data.name || cu?.displayName || 'Driver';
+  document.getElementById('ep-name-val').textContent = name || '—';
+  document.getElementById('ep-name-input').value = name || '';
+  document.getElementById('ep-phone-val').textContent = data.phone || 'Not set';
+  document.getElementById('ep-phone-input').value = data.phone || '';
+  document.getElementById('ep-idnum-val').textContent = data.idnum || 'Not set';
+  document.getElementById('ep-idnum-input').value = data.idnum || '';
+  document.getElementById('ep-city-val').textContent = data.city || 'Not set';
+  document.getElementById('ep-city-input').value = data.city || '';
+  // Update top profile card too
+  document.getElementById('profName').textContent = name;
+  document.getElementById('profEmail').textContent = cu?.email || '—';
+  const i = ini2(name);
+  document.getElementById('profAv').textContent = i;
+  document.getElementById('tbAv').textContent = i;
+}
+
+window.startEditProfile = function() {
+  document.getElementById('epBody').classList.add('edit-mode');
+  document.getElementById('epEditBtn').style.display = 'none';
+  document.getElementById('epSaveBtn').style.display = '';
+  document.getElementById('ep-name-input').focus();
+};
+
+window.saveProfileDetails = async function() {
+  const data = {
+    name: document.getElementById('ep-name-input').value.trim() || cu?.displayName || 'Driver',
+    phone: document.getElementById('ep-phone-input').value.trim(),
+    idnum: document.getElementById('ep-idnum-input').value.trim(),
+    city: document.getElementById('ep-city-input').value.trim(),
+  };
+  // Exit edit mode immediately (optimistic)
+  document.getElementById('epBody').classList.remove('edit-mode');
+  document.getElementById('epSaveBtn').style.display = 'none';
+  document.getElementById('epEditBtn').style.display = '';
+  applyProfileData(data);
+  localStorage.setItem('vynix_profile', JSON.stringify(data));
+  // Save to Firebase
+  try {
+    await set(ref(db, `drivers/${cu.uid}/profile`), data);
+    // Also update Firebase Auth display name
+    if (data.name && auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: data.name }).catch(()=>{});
+    }
+    showToast('✅ Profile saved!');
+  } catch(e) {
+    showToast('Saved locally — will sync when online');
+  }
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────
+function ini2(n) { return (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); }
+function updateUI(u) {
+  const n=u?(u.displayName||'Driver'):'Guest', e=u?u.email:'', i=ini2(n);
+  ['tbAv','profAv'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
+  const pn=document.getElementById('profName'); if(pn) pn.textContent=n;
+  const pe=document.getElementById('profEmail'); if(pe) pe.textContent=e;
+  // seed ep
+  document.getElementById('ep-name-val').textContent = n;
+  document.getElementById('ep-name-input').value = n;
+}
+
+// ─── ONLINE TOGGLE ────────────────────────────────────────────
+async function goOnline() {
+  isOnline=true; onlineStartTime=Date.now(); setOnlineUI(true);
+  localStorage.setItem('vynix_driver_status','online');
+  navigator.geolocation?.getCurrentPosition(
+    pos=>updateDriverLocation(pos.coords.latitude,pos.coords.longitude),
+    ()=>updateDriverLocation(-24.1991,28.9934)
+  );
+  get(ref(db,'ride_requests')).then(s=>processRideData(s.val()||{}));
+  setPanelState('mid'); showToast('You are now Online 🟢');
+}
+async function goOffline() {
+  isOnline=false; setOnlineUI(false);
+  localStorage.setItem('vynix_driver_status','offline');
+  if(cu&&db) await remove(ref(db,`active_drivers/${cu.uid}`)).catch(()=>{});
+  get(ref(db,'ride_requests')).then(s=>processRideData(s.val()||{}));
+  updateHoursOnline(); showToast('You are now Offline ⚫');
+}
+window.toggleOnline = function() {
+  if(!cu){showToast('Please sign in first');return;}
+  if(activeRideId){showToast('Complete your current ride first');return;}
+  if(isOnline) goOffline(); else goOnline();
+};
+function setOnlineUI(on) {
+  ['bigToggle','bigToggleMini'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',on);});
+  const sv=document.getElementById('statusVal'); if(sv){sv.textContent=on?'Online':'Offline';sv.classList.toggle('off',!on);}
+  const mt=document.getElementById('mobileToggle'); if(mt) mt.classList.toggle('on',on);
+  const ml=document.getElementById('mobileToggleLbl'); if(ml) ml.textContent=on?'Online':'Offline';
+  const pd=document.getElementById('pcrDot'); if(pd) pd.classList.toggle('on',on);
+  const pl=document.getElementById('pcrLabel'); if(pl) pl.textContent=on?'Online':'Offline';
+}
+function updateHoursOnline() {
+  if(!onlineStartTime) return;
+  const hrs=((Date.now()-onlineStartTime)/3600000).toFixed(1);
+  const el=document.getElementById('stat-hrs'); if(el) el.innerHTML=hrs+'<span>h</span>';
+}
+
+// ─── RIDE REQUESTS ────────────────────────────────────────────
+function renderRideRequests(list) {
+  const el=document.getElementById('rideReqList');
+  const lbl=document.getElementById('reqLabel');
+  if(activeRideId){if(lbl)lbl.style.display='none';el.style.display='none';return;}
+  if(lbl) lbl.style.display=''; el.style.display='';
+  if(!list.length){el.innerHTML='<div class="no-rides"><div class="no-rides-ico">🚗</div>No ride requests right now</div>';return;}
+  el.innerHTML = list.map(([id,r])=>`
+    <div class="req-card" id="req-${id}">
+      <div class="req-top">
+        <div class="req-rider">
+          <div class="req-av">${ini2(r.riderName||'R')}</div>
+          <div><div class="req-name">${r.riderName||'Rider'}</div><span class="req-type-chip">${r.rideType||'VynixGo'}</span></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;display:flex;align-items:flex-start;gap:8px">
+          <div><div class="req-fare">R ${parseFloat(r.fare||0).toFixed(2)}</div><div class="req-fare-lbl">est. fare</div></div>
+          <button onclick="deleteRideRequest('${id}')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px;opacity:.6;transition:opacity .18s" title="Delete">🗑️</button>
+        </div>
+      </div>
+      <div class="req-divider"></div>
+      <div class="req-route">
+        <div class="req-point"><div class="rp-icon pickup"><div class="rp-dot pickup"></div></div><div><div class="rp-lbl">Pickup</div><div class="rp-addr">${(r.pickup||'Current Location').substring(0,55)}</div></div></div>
+        <div class="req-point"><div class="rp-icon drop"><div class="rp-dot drop"></div></div><div><div class="rp-lbl">Destination</div><div class="rp-addr">${(r.destination||'—').substring(0,55)}</div></div></div>
+      </div>
+      <div class="req-meta">
+        <span class="req-chip">📍 ${r.distKm?parseFloat(r.distKm).toFixed(1)+' km':'—'}</span>
+        <span class="req-chip">⏱ ${r.tripMins?r.tripMins+' min':'—'}</span>
+        <span class="req-chip">👤 ${r.capacity||4} seats</span>
+        <span class="req-chip">💳 Paid</span>
+      </div>
+      <div class="req-btns">
+        <button class="btn-decline" onclick="openDeclineModal('${id}')">Decline</button>
+        <button class="btn-accept" onclick="openAcceptModal('${id}')">Accept →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── STATS ────────────────────────────────────────────────────
+async function loadTodayStats() {
+  if(!cu||!db) return;
+  try {
+    const snap=await get(ref(db,`drivers/${cu.uid}/earnings`)); const d=snap.val()||{total:0,trips:0};
+    document.getElementById('totalEarnings').textContent=`R ${(d.total||0).toFixed(2)}`;
+    document.getElementById('totalTrips').textContent=d.trips||0;
+    document.getElementById('avgFare').textContent=d.trips?'R'+((d.total||0)/(d.trips||1)).toFixed(0):'R0';
+    document.getElementById('todayEarnings').textContent='R'+statsToday.earned.toFixed(0);
+  } catch(e){}
+}
+
+// ─── TRIP HISTORY ─────────────────────────────────────────────
+function loadTripHistory() {
+  if(!cu||!db) return;
+  onValue(ref(db,`drivers/${cu.uid}/trips`), snap => {
+    allTrips = Object.values(snap.val()||{}).reverse();
+    get(ref(db,`drivers/${cu.uid}/canceled_rides`)).then(csnap=>{
+      allCanceled = Object.values(csnap.val()||{}).reverse();
+      renderHistoryLists();
+    }).catch(()=>renderHistoryLists());
+    loadTodayStats();
+  });
+}
+function renderHistoryLists() {
+  const hCount=document.getElementById('historyCount');
+  if(hCount) hCount.textContent=`${allTrips.length} completed · ${allCanceled.length} canceled`;
+  const tripCard=(t,isCanceled=false)=>`
+    <div class="trip-card">
+      <div style="flex:1;min-width:0">
+        <div class="tc-type">${t.rideType||'VynixGo'}</div>
+        <div class="tc-rider">👤 ${t.riderName||'Rider'}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.4">📍 ${(t.pickup||'—').substring(0,26)} → ${(t.destination||'—').substring(0,26)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;font-weight:500">${(t.date||t.canceledAt)?new Date(t.date||t.canceledAt).toLocaleString('en-ZA',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+        ${isCanceled?`<span class="tc-badge canceled">✕ Canceled · ${t.cancelReason||''}</span>`:`<span class="tc-badge">✓ Completed</span>`}
+      </div>
+      <div style="text-align:right;flex-shrink:0;padding-left:10px">
+        ${isCanceled?`<div class="tc-fare canceled" style="font-size:14px">Canceled</div>`:`<div class="tc-fare">+R ${parseFloat(t.fare||0).toFixed(2)}</div>${t.distKm?`<div class="tc-km">${parseFloat(t.distKm).toFixed(1)} km</div>`:''}`}
+      </div>
+    </div>`;
+  document.getElementById('historyList').innerHTML = allTrips.length ? allTrips.map(t=>tripCard(t,false)).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">🗂️ No completed trips yet.</div>';
+  document.getElementById('canceledList').innerHTML = allCanceled.length ? allCanceled.map(t=>tripCard(t,true)).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">No canceled rides. 👍</div>';
+  document.getElementById('earningsTripList').innerHTML = allTrips.length ? allTrips.slice(0,5).map(t=>tripCard(t,false)).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;font-weight:600">💰 No completed trips yet.</div>';
+}
+window.showHistoryTab = function(tab) {
+  currentHistoryTab=tab;
+  document.getElementById('historyList').style.display = tab==='all'?'':'none';
+  document.getElementById('canceledList').style.display = tab==='canceled'?'':'none';
+  const allBtn=document.getElementById('tab-all'), cancelBtn=document.getElementById('tab-canceled');
+  if(tab==='all'){
+    allBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--blue);background:rgba(26,59,255,.08);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;transition:all .22s';
+    cancelBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;transition:all .22s';
+  } else {
+    cancelBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--red);background:rgba(239,68,68,.08);color:var(--red);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;transition:all .22s';
+    allBtn.style.cssText='flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;transition:all .22s';
+  }
+};
+
+// ─── VEHICLE ─────────────────────────────────────────────────
+function loadVehicleInfo() {
+  if(!cu||!db) return;
+  get(ref(db,`drivers/${cu.uid}/vehicle`)).then(snap=>{
+    const v=snap.val();
+    if(v){
+      document.getElementById('vehicleSummary').textContent=`${v.car} · ${v.plate} · ${v.type}`;
+      document.getElementById('v-car').value=v.car||'';
+      document.getElementById('v-plate').value=v.plate||'';
+      document.getElementById('v-type').value=v.type||'VynixGo';
+    } else { setTimeout(()=>document.getElementById('vehicleModal').classList.add('show'),700); }
+  }).catch(()=>{});
+}
+window.openVehicleModal=()=>document.getElementById('vehicleModal').classList.add('show');
+window.saveVehicle=async function(){
+  if(!cu) return;
+  const car=document.getElementById('v-car').value.trim();
+  const plate=document.getElementById('v-plate').value.trim().toUpperCase();
+  const type=document.getElementById('v-type').value;
+  if(!car||!plate){showToast('Please fill in all vehicle details');return;}
+  await set(ref(db,`drivers/${cu.uid}/vehicle`),{car,plate,type}).catch(()=>{});
+  document.getElementById('vehicleSummary').textContent=`${car} · ${plate} · ${type}`;
+  document.getElementById('vehicleModal').classList.remove('show');
+  showToast('Vehicle details saved');
+};
+
+// ─── PAGE NAV ─────────────────────────────────────────────────
+const PAGES = ['map','earnings','history','account'];
+window.switchPage = function(name) {
+  PAGES.forEach(p => {
+    const pg=document.getElementById(p==='map'?'page-map':`page-${p}`); if(!pg) return;
+    pg.classList.toggle('show', p===name);
+    const bn=document.getElementById(`bn-${p}`); if(bn) bn.classList.toggle('act',p===name);
+  });
+  if(name==='map') setTimeout(()=>driverMap?.resize(),60);
+};
+
+// ─── TOAST ────────────────────────────────────────────────────
+window.showToast = function(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+};
+</script>
+</body>
+</html>
