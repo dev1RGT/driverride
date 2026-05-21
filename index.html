@@ -69,16 +69,16 @@
         @keyframes slideDown { from { top: -120px; opacity: 0; } to { top: 24px; opacity: 1; } }
 
         .nav-pill {
-            background: rgba(255,255,255,0.08);
+            background: rgba(20,40,30,0.72);
             backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255,255,255,0.18);
             padding: 6px 28px 6px 6px;
             border-radius: 9999px;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
             transition: var(--transition-smooth);
         }
-        .nav-pill.scrolled { background: rgba(38,70,54,0.88); border-color: rgba(255,255,255,0.1); }
+        .nav-pill.scrolled { background: rgba(38,70,54,0.95); border-color: rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
 
         /* Logo image in nav */
         .nav-logo-img {
@@ -193,8 +193,8 @@
         .scroll-line { width: 1.5px; height: 50px; background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent); animation: scrollPulse 2s ease-in-out infinite; }
         @keyframes scrollPulse { 0%,100% { transform: scaleY(1); opacity: 0.6; } 50% { transform: scaleY(0.5); opacity: 1; } }
 
-        /* ── MENU CAROUSEL ── */
-        .carousel-section { padding: 130px 0; background: var(--bg-sage); position: relative; overflow: hidden; }
+        /* ── MENU GRID ── */
+        .carousel-section { padding: 130px 0 140px; background: var(--bg-sage); position: relative; overflow: hidden; }
         .carousel-section::before {
             content: ''; position: absolute; top: -200px; right: -200px;
             width: 600px; height: 600px;
@@ -204,34 +204,24 @@
         .section-header { max-width: 1200px; margin: 0 auto 70px; padding: 0 40px; display: flex; justify-content: space-between; align-items: flex-end; }
         .section-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; color: var(--leaf-gold); margin-bottom: 14px; }
         .section-title { font-size: clamp(2.4rem, 4vw, 3.5rem); font-weight: 700; letter-spacing: -1.5px; line-height: 1.05; }
-        .carousel-controls { display: flex; gap: 15px; }
-        .control-btn {
-            width: 65px; height: 65px; border-radius: 50%;
-            background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.3);
-            color: var(--white); cursor: pointer; display: flex; justify-content: center; align-items: center;
-            transition: var(--transition-smooth); backdrop-filter: blur(10px);
-        }
-        .control-btn:hover { background: var(--deep-green); border-color: var(--deep-green); transform: scale(1.12) rotate(5deg); box-shadow: 0 15px 30px rgba(38,70,54,0.4); }
-        .control-btn:active { transform: scale(0.95); }
 
-        /* Auto-scroll infinite strip */
-        .carousel-outer { overflow: hidden; padding: 20px 0 70px 0; position: relative; }
-        .carousel-track {
-            display: flex; gap: 28px; width: max-content;
-            animation: autoScroll 55s linear infinite;
-            will-change: transform;
+        /* Grid container */
+        .menu-grid-outer { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto auto;
+            gap: 28px;
         }
-        .carousel-track:hover { animation-play-state: paused; }
-        @keyframes autoScroll {
-            0%   { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
+        /* Make the first card span 2 columns for a featured feel */
+        .menu-card:first-child { grid-column: span 2; }
+        /* Last card fills remaining single cell */
+        .menu-card:last-child { grid-column: span 1; }
 
-        /* Modern image-forward card — 80% image / 20% text */
+        /* Modern image-forward card */
         .menu-card {
             background: var(--white);
             color: var(--deep-green);
-            width: 300px;
             border-radius: 24px;
             overflow: hidden;
             display: flex;
@@ -240,18 +230,18 @@
             transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), box-shadow 0.6s cubic-bezier(0.16,1,0.3,1);
             position: relative;
             cursor: pointer;
-            flex-shrink: 0;
         }
         .menu-card:hover { transform: translateY(-14px) scale(1.02); box-shadow: 0 40px 80px rgba(38,70,54,0.22); }
 
-        /* 80% = image */
+        /* Image fills the card — taller for featured card */
         .card-img-holder {
             width: 100%;
-            height: 330px;
+            height: 320px;
             overflow: hidden;
             position: relative;
             flex-shrink: 0;
         }
+        .menu-card:first-child .card-img-holder { height: 380px; }
         .card-img-holder img {
             width: 100%; height: 100%;
             object-fit: cover;
@@ -260,7 +250,7 @@
         }
         .menu-card:hover .card-img-holder img { transform: scale(1.07); }
 
-        /* floating tag on image */
+        /* Floating tag on image */
         .card-tag {
             position: absolute; top: 14px; left: 14px;
             background: rgba(255,255,255,0.92);
@@ -271,7 +261,7 @@
             text-transform: uppercase; letter-spacing: 2.5px;
         }
 
-        /* 20% = text footer */
+        /* Text footer */
         .card-body {
             padding: 18px 22px 22px;
             display: flex; flex-direction: column; gap: 4px;
@@ -401,6 +391,9 @@
         @media (max-width: 1024px) {
             .footer-grid { grid-template-columns: 1fr 1fr; }
             .stats-section { grid-template-columns: 1fr; gap: 60px; }
+            .menu-grid { grid-template-columns: repeat(2, 1fr); }
+            .menu-card:first-child { grid-column: span 2; }
+            .menu-card:last-child { grid-column: span 1; }
         }
         @media (max-width: 768px) {
             .nav-links { display: none; }
@@ -411,6 +404,9 @@
             .footer-legal a { margin: 0 15px; }
             .nav-logo-img { height: 60px; }
             .footer-logo-img { height: 100px; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .menu-card:first-child, .menu-card:last-child { grid-column: span 1; }
+            .menu-grid-outer { padding: 0 20px; }
         }
     </style>
 </head>
@@ -451,18 +447,9 @@
                 <p class="section-label">What We Craft</p>
                 <h2 class="section-title">Signature<br>Blends</h2>
             </div>
-            <div class="carousel-controls reveal delay-2">
-                <button class="control-btn" id="prevBtn" aria-label="Previous">
-                    <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-                <button class="control-btn" id="nextBtn" aria-label="Next">
-                    <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-            </div>
         </div>
-        <div class="carousel-outer reveal">
-            <div class="carousel-track" id="track">
-                <!-- Original set -->
+        <div class="menu-grid-outer reveal">
+            <div class="menu-grid">
                 <div class="menu-card">
                     <div class="card-img-holder">
                         <img src="https://i.postimg.cc/jqMbgHvq/Aq4Vg.jpg" alt="Mokopane Green">
@@ -513,56 +500,6 @@
                         <p class="card-desc"></p>
                     </div>
                 </div>
-                <!-- Duplicated set for seamless loop -->
-                <div class="menu-card">
-                    <div class="card-img-holder">
-                        <img src="https://i.postimg.cc/jqMbgHvq/Aq4Vg.jpg" alt="Mokopane Green">
-                        <span class="card-tag">Smoothie</span>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title"></h3>
-                        <p class="card-desc"></p>
-                    </div>
-                </div>
-                <div class="menu-card">
-                    <div class="card-img-holder">
-                        <img src="https://i.postimg.cc/QdTZdR3R/pfz5W.jpg" alt="Golden Glow">
-                        <span class="card-tag">Smoothie</span>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title"></h3>
-                        <p class="card-desc"></p>
-                    </div>
-                </div>
-                <div class="menu-card">
-                    <div class="card-img-holder">
-                        <img src="https://i.postimg.cc/TPvMLC25/jui.jpg" alt="Voor Street Bowl">
-                        <span class="card-tag">Smoothie</span>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title"></h3>
-                        <p class="card-desc"></p>
-                    </div>
-                </div>
-                <div class="menu-card">
-                    <div class="card-img-holder">
-                        <img src="https://i.postimg.cc/JnRfK0kM/A3P6E.jpg" alt="Ginger Shot Tonic">
-                        <span class="card-tag">Wraps & Chips</span>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title"></h3>
-                        <p class="card-desc"></p>
-                    </div>
-                </div>
-                <div class="menu-card">
-                    <div class="card-img-holder">
-                        <img src="https://i.postimg.cc/wMZbKj7t/5b-A7U.jpg" alt="Almond Shake">
-                        <span class="card-tag">Dessert</span>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title"></h3>
-                        <p class="card-desc"></p>
-                    </div>
             </div>
         </div>
     </section>
@@ -682,24 +619,6 @@
             });
         }, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
         allReveal.forEach(el => observer.observe(el));
-
-        // ── Parallax hero BG (disabled — Ken Burns animation handles motion) ──
-
-        // ── Carousel prev/next speed nudge ──
-        const track = document.getElementById('track');
-        const nextBtn = document.getElementById('nextBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        // Buttons temporarily speed up / reverse the scroll direction
-        nextBtn.addEventListener('click', () => {
-            track.style.animationDirection = 'normal';
-            track.style.animationDuration = '12s';
-            setTimeout(() => { track.style.animationDuration = '55s'; }, 900);
-        });
-        prevBtn.addEventListener('click', () => {
-            track.style.animationDirection = 'reverse';
-            track.style.animationDuration = '12s';
-            setTimeout(() => { track.style.animationDirection = 'normal'; track.style.animationDuration = '55s'; }, 900);
-        });
 
         // ── 3D Tilt on stat cards ──
         document.querySelectorAll('.stat-card').forEach(card => {
