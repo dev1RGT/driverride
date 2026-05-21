@@ -219,41 +219,71 @@
         }
         .control-btn:hover { background: var(--deep-green); border-color: var(--deep-green); transform: scale(1.12) rotate(5deg); box-shadow: 0 15px 30px rgba(38,70,54,0.4); }
         .control-btn:active { transform: scale(0.95); }
-        .carousel-container { overflow: hidden; padding: 20px 0 70px 40px; }
-        .carousel-track { display: flex; gap: 30px; transition: transform 0.9s cubic-bezier(0.16,1,0.3,1); width: max-content; }
 
+        /* Auto-scroll infinite strip */
+        .carousel-outer { overflow: hidden; padding: 20px 0 70px 0; position: relative; }
+        .carousel-track {
+            display: flex; gap: 28px; width: max-content;
+            animation: autoScroll 36s linear infinite;
+            will-change: transform;
+        }
+        .carousel-track:hover { animation-play-state: paused; }
+        @keyframes autoScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Modern image-forward card — 80% image / 20% text */
         .menu-card {
-            background: var(--white); color: var(--deep-green);
-            width: 340px; border-radius: 55px 55px 200px 200px;
-            padding: 32px; display: flex; flex-direction: column;
-            align-items: center; text-align: center;
-            box-shadow: 0 20px 60px rgba(38,70,54,0.1);
-            transition: transform 0.7s cubic-bezier(0.16,1,0.3,1), box-shadow 0.7s cubic-bezier(0.16,1,0.3,1);
-            position: relative; cursor: pointer; overflow: hidden;
+            background: var(--white);
+            color: var(--deep-green);
+            width: 300px;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 16px 48px rgba(38,70,54,0.13);
+            transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), box-shadow 0.6s cubic-bezier(0.16,1,0.3,1);
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-        .menu-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, var(--leaf-gold), var(--bg-sage));
-            transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
-        }
-        .menu-card:hover::before { transform: scaleX(1); }
-        .menu-card:hover { transform: translateY(-22px) scale(1.01); box-shadow: 0 50px 100px rgba(38,70,54,0.2); }
+        .menu-card:hover { transform: translateY(-14px) scale(1.02); box-shadow: 0 40px 80px rgba(38,70,54,0.22); }
 
+        /* 80% = image */
         .card-img-holder {
-            width: 100%; height: 270px; background: var(--bg-sage);
-            border-radius: 35px 35px 150px 150px; margin-bottom: 28px;
-            overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center;
-            transition: var(--transition-smooth);
+            width: 100%;
+            height: 330px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
         }
-        .menu-card:hover .card-img-holder { transform: scale(0.96); }
-        .product-graphic { width: 85px; height: 140px; background: var(--deep-green); border-radius: 40px 40px 20px 20px; position: relative; transition: transform 0.7s cubic-bezier(0.34,1.56,0.64,1); }
-        .menu-card:hover .product-graphic { transform: translateY(-12px) rotate(2deg); }
-        .product-graphic::after { content: ''; position: absolute; top: 25px; left: 50%; transform: translateX(-50%); width: 8px; height: 50px; background: var(--leaf-gold); border-radius: 5px; }
+        .card-img-holder img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.9s cubic-bezier(0.16,1,0.3,1);
+            display: block;
+        }
+        .menu-card:hover .card-img-holder img { transform: scale(1.07); }
 
-        .card-title { font-size: 1.45rem; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
-        .card-tag { background: rgba(38,70,54,0.07); color: var(--deep-green); padding: 8px 20px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2.5px; }
-        .card-desc { opacity: 0.65; font-size: 0.9rem; margin-bottom: 22px; line-height: 1.5; }
-        .card-price { font-size: 1.75rem; font-weight: 800; margin-top: auto; color: var(--deep-green); letter-spacing: -1px; }
+        /* floating tag on image */
+        .card-tag {
+            position: absolute; top: 14px; left: 14px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            color: var(--deep-green);
+            padding: 5px 14px; border-radius: 9999px;
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2.5px;
+        }
+
+        /* 20% = text footer */
+        .card-body {
+            padding: 18px 22px 22px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .card-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; }
+        .card-desc { opacity: 0.58; font-size: 0.8rem; line-height: 1.5; margin-top: 3px; }
 
         /* ── STATS / ABOUT ── */
         .stats-section { max-width: 1200px; margin: 0 auto; padding: 80px 40px 120px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
@@ -458,42 +488,129 @@
                 </button>
             </div>
         </div>
-        <div class="carousel-container reveal">
+        <div class="carousel-outer reveal">
             <div class="carousel-track" id="track">
+                <!-- Original set -->
                 <div class="menu-card">
-                    <div class="card-img-holder"><div class="product-graphic"></div></div>
-                    <span class="card-tag">Detox</span>
-                    <h3 class="card-title">Mokopane Green</h3>
-                    <p class="card-desc">Celery, cucumber, green apple, kale, & wild mint.</p>
-                    <span class="card-price">R 125</span>
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Mokopane Green">
+                        <span class="card-tag">Detox</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Mokopane Green</h3>
+                        <p class="card-desc">Celery, cucumber, green apple, kale & wild mint.</p>
+                    </div>
                 </div>
                 <div class="menu-card">
-                    <div class="card-img-holder" style="background:var(--leaf-gold)"><div class="product-graphic" style="background:var(--white)"></div></div>
-                    <span class="card-tag">Energy</span>
-                    <h3 class="card-title">Golden Glow</h3>
-                    <p class="card-desc">Ginger, turmeric, fresh carrot, pineapple & orange lemon press.</p>
-                    <span class="card-price">R 140</span>
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Golden Glow" style="object-position: center 30%;">
+                        <span class="card-tag">Energy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Golden Glow</h3>
+                        <p class="card-desc">Ginger, turmeric, fresh carrot, pineapple & orange lemon press.</p>
+                    </div>
                 </div>
                 <div class="menu-card">
-                    <div class="card-img-holder" style="background:var(--deep-green)"><div class="product-graphic" style="background:var(--leaf-gold)"></div></div>
-                    <span class="card-tag">Antioxidant</span>
-                    <h3 class="card-title">Voor Street Bowl</h3>
-                    <p class="card-desc">Pure acai, local berries, home-baked granola, & hemp seeds.</p>
-                    <span class="card-price">R 210</span>
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Voor Street Bowl" style="object-position: center 60%;">
+                        <span class="card-tag">Antioxidant</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Voor Street Bowl</h3>
+                        <p class="card-desc">Pure acai, local berries, home-baked granola & hemp seeds.</p>
+                    </div>
                 </div>
                 <div class="menu-card">
-                    <div class="card-img-holder"><div class="product-graphic"></div></div>
-                    <span class="card-tag">Immunity</span>
-                    <h3 class="card-title">Ginger Shot Tonic</h3>
-                    <p class="card-desc">Concentrated organic ginger, cayenne pepper, and raw honey.</p>
-                    <span class="card-price">R 105</span>
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Ginger Shot Tonic" style="object-position: center 80%;">
+                        <span class="card-tag">Immunity</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Ginger Shot Tonic</h3>
+                        <p class="card-desc">Concentrated organic ginger, cayenne pepper & raw honey.</p>
+                    </div>
                 </div>
                 <div class="menu-card">
-                    <div class="card-img-holder" style="background:var(--leaf-gold)"><div class="product-graphic" style="background:var(--deep-green)"></div></div>
-                    <span class="card-tag">Protein+</span>
-                    <h3 class="card-title">Almond Shake</h3>
-                    <p class="card-desc">House almond butter, plant protein, dates, banana, and oat milk.</p>
-                    <span class="card-price">R 185</span>
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Almond Shake" style="object-position: center 10%;">
+                        <span class="card-tag">Protein+</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Almond Shake</h3>
+                        <p class="card-desc">House almond butter, plant protein, dates, banana & oat milk.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Berry Burst" style="object-position: center 45%;">
+                        <span class="card-tag">Hydration</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Berry Burst</h3>
+                        <p class="card-desc">Strawberry, blueberry, coconut water & chia seeds.</p>
+                    </div>
+                </div>
+                <!-- Duplicated set for seamless loop -->
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Mokopane Green">
+                        <span class="card-tag">Detox</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Mokopane Green</h3>
+                        <p class="card-desc">Celery, cucumber, green apple, kale & wild mint.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Golden Glow" style="object-position: center 30%;">
+                        <span class="card-tag">Energy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Golden Glow</h3>
+                        <p class="card-desc">Ginger, turmeric, fresh carrot, pineapple & orange lemon press.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Voor Street Bowl" style="object-position: center 60%;">
+                        <span class="card-tag">Antioxidant</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Voor Street Bowl</h3>
+                        <p class="card-desc">Pure acai, local berries, home-baked granola & hemp seeds.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Ginger Shot Tonic" style="object-position: center 80%;">
+                        <span class="card-tag">Immunity</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Ginger Shot Tonic</h3>
+                        <p class="card-desc">Concentrated organic ginger, cayenne pepper & raw honey.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Almond Shake" style="object-position: center 10%;">
+                        <span class="card-tag">Protein+</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Almond Shake</h3>
+                        <p class="card-desc">House almond butter, plant protein, dates, banana & oat milk.</p>
+                    </div>
+                </div>
+                <div class="menu-card">
+                    <div class="card-img-holder">
+                        <img src="https://i.postimg.cc/TwTpdNjs/image-(2).jpg" alt="Berry Burst" style="object-position: center 45%;">
+                        <span class="card-tag">Hydration</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Berry Burst</h3>
+                        <p class="card-desc">Strawberry, blueberry, coconut water & chia seeds.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -622,34 +739,20 @@
                 heroBg.style.transform = `translateY(${window.scrollY * 0.35}px) scale(1.1)`;
         }, { passive: true });
 
-        // ── Carousel ──
+        // ── Carousel prev/next speed nudge ──
         const track = document.getElementById('track');
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
-        let index = 0;
-        const updateCarousel = () => {
-            const cardWidth = 370;
-            let visible = 1;
-            if (window.innerWidth > 1200) visible = 3;
-            else if (window.innerWidth > 800) visible = 2;
-            const max = track.children.length - visible;
-            if (index < 0) index = 0;
-            if (index > max && max > 0) index = max;
-            track.style.transform = `translateX(-${index * cardWidth}px)`;
-        };
-        nextBtn.addEventListener('click', () => { index++; updateCarousel(); });
-        prevBtn.addEventListener('click', () => { index--; updateCarousel(); });
-        window.addEventListener('resize', updateCarousel);
-
-        // ── 3D Tilt on menu cards ──
-        document.querySelectorAll('.menu-card').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const r = card.getBoundingClientRect();
-                const x = e.clientX - r.left - r.width / 2;
-                const y = e.clientY - r.top - r.height / 2;
-                card.style.transform = `translateY(-22px) scale(1.01) perspective(800px) rotateX(${(y/r.height)*8}deg) rotateY(${-(x/r.width)*8}deg)`;
-            });
-            card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+        // Buttons temporarily speed up / reverse the scroll direction
+        nextBtn.addEventListener('click', () => {
+            track.style.animationDirection = 'normal';
+            track.style.animationDuration = '10s';
+            setTimeout(() => { track.style.animationDuration = '36s'; }, 800);
+        });
+        prevBtn.addEventListener('click', () => {
+            track.style.animationDirection = 'reverse';
+            track.style.animationDuration = '10s';
+            setTimeout(() => { track.style.animationDirection = 'normal'; track.style.animationDuration = '36s'; }, 800);
         });
 
         // ── 3D Tilt on stat cards ──
