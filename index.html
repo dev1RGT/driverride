@@ -16,7 +16,8 @@
             --white: #ffffff;
             --white-trans: rgba(255, 255, 255, 0.15);
             --white-blur: rgba(255, 255, 255, 0.25);
-            --transition-smooth: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-smooth: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-fast: all 0.3s ease;
         }
 
         * {
@@ -36,28 +37,42 @@
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
         ::-webkit-scrollbar-track {
-            background: var(--bg-sage);
+            background: var(--deep-green);
         }
         ::-webkit-scrollbar-thumb {
-            background: var(--white-trans);
+            background: var(--leaf-gold);
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--white-blur);
+            background: var(--white);
         }
 
         /* Scroll Animation Utility */
         .reveal {
             opacity: 0;
-            transform: translateY(40px);
+            transform: translateY(50px) scale(0.98);
             transition: var(--transition-smooth);
         }
         .reveal.active {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
+        }
+
+        /* Staggered text animations */
+        .fade-up-stagger > * {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUpAnim 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .fade-up-stagger > *:nth-child(1) { animation-delay: 0.2s; }
+        .fade-up-stagger > *:nth-child(2) { animation-delay: 0.4s; }
+        .fade-up-stagger > *:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes fadeUpAnim {
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Floating Pill Navigation */
@@ -69,20 +84,31 @@
             width: 90%;
             max-width: 1100px;
             z-index: 1000;
+            animation: slideDown 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideDown {
+            from { top: -100px; opacity: 0; }
+            to { top: 30px; opacity: 1; }
         }
 
         .nav-pill {
-            background: var(--white-blur);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 12px 35px;
             border-radius: 9999px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             transition: var(--transition-smooth);
+        }
+
+        .nav-pill:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         .logo-text {
@@ -95,6 +121,7 @@
             display: flex;
             align-items: center;
             gap: 2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .logo-text span {
@@ -103,7 +130,7 @@
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 35px;
             list-style: none;
         }
 
@@ -112,16 +139,18 @@
             text-decoration: none;
             font-weight: 500;
             font-size: 0.95rem;
-            transition: var(--transition-smooth);
+            transition: var(--transition-fast);
             position: relative;
             padding: 5px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .nav-links a::after {
             content: '';
             position: absolute;
             bottom: 0;
-            left: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 0;
             height: 2px;
             background-color: var(--leaf-gold);
@@ -132,26 +161,31 @@
             width: 100%;
         }
 
+        .nav-links a:hover {
+            color: var(--leaf-gold);
+        }
+
         .nav-btn {
             background: var(--white);
             color: var(--deep-green);
-            padding: 10px 25px;
+            padding: 12px 28px;
             border-radius: 9999px;
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
             transition: var(--transition-smooth);
             border: 1px solid transparent;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
         .nav-btn:hover {
-            background: transparent;
+            background: var(--leaf-gold);
             color: var(--white);
-            border-color: var(--white);
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(223, 199, 174, 0.3);
         }
 
-        /* Hero Section */
+        /* Enhanced Hero Section */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -161,39 +195,69 @@
             text-align: center;
             padding: 150px 20px 80px 20px;
             position: relative;
+            overflow: hidden;
+        }
+
+        /* Premium Animated Background */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            background: url('https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=2070&auto=format&fit=crop') center/cover;
+            z-index: -2;
+            animation: subtleZoom 20s infinite alternate linear;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(158, 180, 166, 0.85), rgba(38, 70, 54, 0.95));
+            z-index: -1;
+        }
+
+        @keyframes subtleZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
 
         .hero-logo-container {
             position: relative;
             margin-bottom: 20px;
-            transform: scale(1.1);
-            animation: fadeIn 1.5s ease;
         }
 
         .hero-leaf {
             width: 55px;
             position: absolute;
-            top: -35px;
+            top: -45px;
             left: 36%;
-            transform: rotate(-10sdeg);
+            transform: rotate(-10deg);
             fill: var(--leaf-gold);
             animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
         }
 
         .hero-title {
-            font-size: clamp(4rem, 12vw, 8.5rem);
+            font-size: clamp(4.5rem, 12vw, 9.5rem);
             font-weight: 700;
             letter-spacing: 12px;
             line-height: 1;
             text-transform: uppercase;
             text-indent: 12px;
+            text-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
 
         .hero-tagline {
             font-size: clamp(1.2rem, 3vw, 1.8rem);
             font-weight: 300;
             letter-spacing: 4px;
-            margin-top: 10px;
+            margin-top: 15px;
             color: rgba(255, 255, 255, 0.9);
         }
 
@@ -201,51 +265,64 @@
         .badge-container {
             display: flex;
             gap: 15px;
-            margin-top: 40px;
+            margin-top: 50px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
         .pill-badge {
-            background: var(--white-trans);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 28px;
             border-radius: 9999px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             gap: 8px;
             transition: var(--transition-smooth);
+            cursor: default;
         }
 
         .pill-badge:hover {
             background: var(--white);
             color: var(--deep-green);
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
 
         .pill-badge.stars {
             background: var(--deep-green);
             color: var(--white);
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .pill-badge.stars:hover {
+            background: var(--leaf-gold);
+            color: var(--deep-green);
         }
 
         .pill-badge.stars span {
             color: var(--leaf-gold);
+            transition: var(--transition-fast);
+        }
+
+        .pill-badge.stars:hover span {
+            color: var(--white);
         }
 
         /* Premium Menu Carousel Section */
         .carousel-section {
-            padding: 100px 0;
-            background: rgba(0, 0, 0, 0.03);
+            padding: 120px 0;
+            background: var(--bg-sage);
             position: relative;
         }
 
         .section-header {
             max-width: 1200px;
-            margin: 0 auto 50px auto;
+            margin: 0 auto 60px auto;
             padding: 0 40px;
             display: flex;
             justify-content: space-between;
@@ -253,9 +330,10 @@
         }
 
         .section-title {
-            font-size: 2.8rem;
+            font-size: 3.2rem;
             font-weight: 600;
             letter-spacing: -1px;
+            line-height: 1.1;
         }
 
         .carousel-controls {
@@ -264,11 +342,11 @@
         }
 
         .control-btn {
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
-            background: var(--white-trans);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             color: var(--white);
             cursor: pointer;
             display: flex;
@@ -278,19 +356,20 @@
         }
 
         .control-btn:hover {
-            background: var(--white);
-            color: var(--deep-green);
+            background: var(--deep-green);
+            border-color: var(--deep-green);
+            transform: scale(1.1);
         }
 
         .carousel-container {
             overflow: hidden;
-            padding: 20px 0 40px 40px;
+            padding: 20px 0 60px 40px;
         }
 
         .carousel-track {
             display: flex;
-            gap: 30px;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 40px;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             width: max-content;
         }
 
@@ -298,77 +377,88 @@
         .menu-card {
             background: var(--white);
             color: var(--deep-green);
-            width: 340px;
-            border-radius: 60px 60px 200px 200px; /* Elegant organic pill/droplet shape */
-            padding: 30px;
+            width: 360px;
+            border-radius: 60px 60px 220px 220px; 
+            padding: 35px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+            box-shadow: 0 20px 50px rgba(38, 70, 54, 0.08);
             transition: var(--transition-smooth);
             position: relative;
+            cursor: pointer;
         }
 
         .menu-card:hover {
-            transform: translateY(-15px) scale(1.02);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+            transform: translateY(-20px);
+            box-shadow: 0 40px 80px rgba(38, 70, 54, 0.15);
         }
 
         .card-img-holder {
             width: 100%;
-            height: 260px;
+            height: 280px;
             background: var(--bg-sage);
-            border-radius: 40px 40px 140px 140px;
-            margin-bottom: 25px;
+            border-radius: 40px 40px 160px 160px;
+            margin-bottom: 30px;
             overflow: hidden;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: var(--transition-smooth);
         }
 
-        /* Abstract Premium Graphic instead of broken image */
+        .menu-card:hover .card-img-holder {
+            transform: scale(0.95);
+        }
+
+        /* Abstract Premium Graphic */
         .product-graphic {
             width: 90px;
-            height: 140px;
+            height: 150px;
             background: var(--deep-green);
-            border-radius: 30px 30px 15px 15px;
+            border-radius: 40px 40px 20px 20px;
             position: relative;
-            opacity: 0.9;
+            transition: var(--transition-smooth);
         }
+        
+        .menu-card:hover .product-graphic {
+            transform: translateY(-10px);
+        }
+
         .product-graphic::after {
             content: '';
             position: absolute;
-            top: 20px;
+            top: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 10px;
-            height: 40px;
+            width: 8px;
+            height: 50px;
             background: var(--leaf-gold);
             border-radius: 5px;
         }
 
         .card-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
         }
 
         .card-tag {
-            background: rgba(38, 70, 54, 0.08);
+            background: rgba(38, 70, 54, 0.06);
             color: var(--deep-green);
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 20px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         .card-price {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
             margin-top: auto;
             color: var(--deep-green);
@@ -377,19 +467,20 @@
         /* Info / Visit Section */
         .info-section {
             max-width: 1200px;
-            margin: 100px auto;
+            margin: 120px auto;
             padding: 0 40px;
             display: grid;
-            grid-template-columns: 1.2sfr 1fr;
-            gap: 80px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 100px;
             align-items: center;
         }
 
         .info-content h2 {
-            font-size: 3.5rem;
+            font-size: 4rem;
             line-height: 1.1;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             font-weight: 600;
+            letter-spacing: -2px;
         }
 
         .info-grid {
@@ -399,10 +490,10 @@
         }
 
         .info-block {
-            background: var(--white-trans);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 30px;
-            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 35px;
+            border-radius: 40px;
             backdrop-filter: blur(10px);
             transition: var(--transition-smooth);
         }
@@ -410,40 +501,46 @@
         .info-block:hover {
             background: var(--white);
             color: var(--deep-green);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
 
         .info-block h3 {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             opacity: 0.8;
+            color: var(--leaf-gold);
         }
+
         .info-block:hover h3 {
             color: var(--bg-sage);
         }
 
         .info-block p {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 500;
+            line-height: 1.4;
         }
 
         /* Minimal Map Graphic Overlay */
         .info-map-graphic {
             background: var(--deep-green);
-            height: 450px;
-            border-radius: 40px 200px 40px 40px;
+            height: 550px;
+            border-radius: 60px 250px 60px 60px;
             position: relative;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            box-shadow: 0 40px 80px rgba(38, 70, 54, 0.3);
+            border: 10px solid rgba(255,255,255,0.1);
         }
 
         .map-pulse {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             background: var(--leaf-gold);
             border-radius: 50%;
             position: relative;
@@ -456,27 +553,142 @@
             height: 100%;
             background: var(--leaf-gold);
             border-radius: 50%;
-            animation: pulse 2.5s infinite;
+            animation: pulse 2.5s infinite cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .map-label {
             position: absolute;
-            bottom: 40px;
-            left: 40px;
+            bottom: 50px;
+            left: 50px;
             background: var(--white);
             color: var(--deep-green);
-            padding: 15px 30px;
+            padding: 18px 35px;
             border-radius: 9999px;
-            font-weight: 600;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transition: var(--transition-smooth);
         }
 
-        /* Footer */
-        footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 50px 40px;
+        .info-map-graphic:hover .map-label {
+            transform: translateY(-10px);
+        }
+
+        /* --- Full Professional Footer --- */
+        .pro-footer {
+            background: var(--deep-green);
+            color: var(--white);
+            padding: 100px 40px 40px 40px;
+            margin-top: 50px;
+            border-radius: 80px 80px 0 0;
+        }
+
+        .footer-grid {
             max-width: 1200px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 60px;
+            margin-bottom: 80px;
+        }
+
+        .footer-col h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--leaf-gold);
+            letter-spacing: 1px;
+        }
+
+        .brand-col p {
+            margin-top: 25px;
+            opacity: 0.8;
+            font-size: 1.05rem;
+            max-width: 300px;
+            line-height: 1.8;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition-fast);
+            font-size: 1.05rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--leaf-gold);
+            padding-left: 8px;
+        }
+
+        .contact-info p {
+            margin-bottom: 20px;
+            opacity: 0.8;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        /* Pill-shaped Newsletter Form */
+        .newsletter-form {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: var(--transition-fast);
+        }
+
+        .newsletter-form:focus-within {
+            border-color: var(--leaf-gold);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .newsletter-form input {
+            background: transparent;
+            border: none;
+            color: var(--white);
+            padding: 15px 25px;
+            outline: none;
+            flex-grow: 1;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .newsletter-form input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .newsletter-form button {
+            background: var(--leaf-gold);
+            color: var(--deep-green);
+            border: none;
+            width: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition-fast);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .newsletter-form button:hover {
+            background: var(--white);
+            transform: scale(1.05);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -485,32 +697,47 @@
         }
 
         .footer-copy {
-            opacity: 0.7;
-            font-size: 0.9rem;
+            opacity: 0.6;
+            font-size: 0.95rem;
+        }
+
+        .footer-legal a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.95rem;
+            transition: var(--transition-fast);
+        }
+
+        .footer-legal a:hover {
+            color: var(--white);
         }
 
         /* Animations Keyframes */
         @keyframes float {
             0% { transform: translateY(0px) rotate(-10deg); }
-            50% { transform: translateY(-10px) rotate(-5deg); }
+            50% { transform: translateY(-15px) rotate(-5deg); }
             100% { transform: translateY(0px) rotate(-10deg); }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1.1); }
-        }
-
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(3); opacity: 0; }
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(4); opacity: 0; }
         }
 
         /* Responsive Design */
-        @media (max-width: 968px) {
+        @media (max-width: 1024px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
             .nav-links { display: none; }
-            .info-section { grid-template-columns: 1fr; gap: 40px; }
+            .info-section { grid-template-columns: 1fr; gap: 60px; }
             .section-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .footer-bottom { flex-direction: column; text-align: center; }
+            .footer-legal a { margin: 0 15px; }
+            .hero-title { font-size: 4rem; }
         }
     </style>
 </head>
@@ -529,20 +756,23 @@
     </header>
 
     <section class="hero">
-        <div class="hero-logo-container">
+        <div class="hero-logo-container fade-up-stagger">
             <svg class="hero-leaf" viewBox="0 0 24 24">
                 <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.58,20.19C15.9,15.8 18.58,11.57 17,8M12,2C11.5,4 11.5,6 13,8C14,9.5 14,11 12,12C15.46,11.22 17.65,9.45 18.5,7.5C19.5,5.25 18,2.5 12,2Z"/>
             </svg>
             <h1 class="hero-title">Juiced.</h1>
         </div>
-        <p class="hero-tagline">Nourishment Refined.</p>
+        
+        <div class="fade-up-stagger">
+            <p class="hero-tagline">Nourishment Refined.</p>
+        </div>
 
-        <div class="badge-container">
+        <div class="badge-container fade-up-stagger">
             <div class="pill-badge stars">
                 <span>★</span> 4.7 &nbsp;|&nbsp; 4,723 Google Reviews
             </div>
             <div class="pill-badge">Health Food Restaurant</div>
-            <div class="pill-badge">Price Range: R 100 – R 300</div>
+            <div class="pill-badge">R 100 – R 300</div>
         </div>
     </section>
 
@@ -550,14 +780,14 @@
         <div class="section-header reveal">
             <div>
                 <h2 class="section-title">Signature Blends</h2>
-                <p style="opacity: 0.8; margin-top: 5px;">Crafted for optimal vitality, locally sourced.</p>
+                <p style="opacity: 0.8; margin-top: 10px; font-size: 1.1rem;">Crafted for optimal vitality, locally sourced.</p>
             </div>
             <div class="carousel-controls">
-                <button class="control-btn" id="prevBtn">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                <button class="control-btn" id="prevBtn" aria-label="Previous">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
-                <button class="control-btn" id="nextBtn">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <button class="control-btn" id="nextBtn" aria-label="Next">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -570,7 +800,7 @@
                     </div>
                     <span class="card-tag">Detox</span>
                     <h3 class="card-title">Mokopane Green</h3>
-                    <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 15px;">Celery, cucumber, green apple, kale, & wild mint.</p>
+                    <p style="opacity: 0.7; font-size: 0.95rem; margin-bottom: 20px;">Celery, cucumber, green apple, kale, & wild mint.</p>
                     <span class="card-price">R 125</span>
                 </div>
                 <div class="menu-card">
@@ -579,7 +809,7 @@
                     </div>
                     <span class="card-tag">Energy</span>
                     <h3 class="card-title">Golden Glow</h3>
-                    <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 15px;">Ginger, turmeric, fresh carrot, pineapple, & orange lemon press.</p>
+                    <p style="opacity: 0.7; font-size: 0.95rem; margin-bottom: 20px;">Ginger, turmeric, fresh carrot, pineapple, & orange lemon press.</p>
                     <span class="card-price">R 140</span>
                 </div>
                 <div class="menu-card">
@@ -587,8 +817,8 @@
                         <div class="product-graphic" style="background: var(--leaf-gold)"></div>
                     </div>
                     <span class="card-tag">Antioxidant</span>
-                    <h3 class="card-title">The Voor Street Bowl</h3>
-                    <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 15px;">Pure acai, local berries, home-baked granola, & hemp seeds.</p>
+                    <h3 class="card-title">Voor Street Bowl</h3>
+                    <p style="opacity: 0.7; font-size: 0.95rem; margin-bottom: 20px;">Pure acai, local berries, home-baked granola, & hemp seeds.</p>
                     <span class="card-price">R 210</span>
                 </div>
                 <div class="menu-card">
@@ -597,7 +827,7 @@
                     </div>
                     <span class="card-tag">Immunity</span>
                     <h3 class="card-title">Ginger Shot Tonic</h3>
-                    <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 15px;">Concentrated organic ginger, cayenne pepper, and raw honey.</p>
+                    <p style="opacity: 0.7; font-size: 0.95rem; margin-bottom: 20px;">Concentrated organic ginger, cayenne pepper, and raw honey.</p>
                     <span class="card-price">R 105</span>
                 </div>
                 <div class="menu-card">
@@ -605,8 +835,8 @@
                         <div class="product-graphic" style="background: var(--deep-green)"></div>
                     </div>
                     <span class="card-tag">Protein+</span>
-                    <h3 class="card-title">Almond Butter Shake</h3>
-                    <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 15px;">House almond butter, plant protein, dates, banana, and oat milk.</p>
+                    <h3 class="card-title">Almond Shake</h3>
+                    <p style="opacity: 0.7; font-size: 0.95rem; margin-bottom: 20px;">House almond butter, plant protein, dates, banana, and oat milk.</p>
                     <span class="card-price">R 185</span>
                 </div>
             </div>
@@ -616,7 +846,7 @@
     <section class="info-section" id="visit">
         <div class="info-content reveal">
             <h2>Experience <br>Juiced. Firsthand</h2>
-            <p style="opacity: 0.9; margin-bottom: 40px; font-size: 1.1rem;">Step into an oasis of structural health food design. Taste curated premium blends tailored precisely for your aesthetic and health goals.</p>
+            <p style="opacity: 0.9; margin-bottom: 50px; font-size: 1.15rem; line-height: 1.8;">Step into an oasis of structural health food design. Taste curated premium blends tailored precisely for your aesthetic and health goals.</p>
             
             <div class="info-grid">
                 <div class="info-block">
@@ -636,9 +866,50 @@
         </div>
     </section>
 
-    <footer>
-        <span class="logo-text" style="font-size: 1.2rem;">Juiced<span>.</span></span>
-        <p class="footer-copy">&copy; 2026 Juiced Premium Health Food Restaurant. All rights reserved.</p>
+    <footer class="pro-footer">
+        <div class="footer-grid">
+            <div class="footer-col brand-col">
+                <span class="logo-text" style="font-size: 1.8rem;">Juiced<span>.</span></span>
+                <p>Elevating your daily vitality with locally sourced, architecturally designed health foods. Taste the premium difference.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul class="footer-links">
+                    <li><a href="#about">Our Story</a></li>
+                    <li><a href="#menu">Full Menu</a></li>
+                    <li><a href="#visit">Locations</a></li>
+                    <li><a href="#">Careers</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col contact-info">
+                <h4>Contact</h4>
+                <p>73 Voor St<br>Mokopane, 0600<br>South Africa</p>
+                <p>
+                    <a href="mailto:hello@juiced.co.za" style="color: var(--leaf-gold); text-decoration: none;">hello@juiced.co.za</a><br>
+                    +27 12 345 6789
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Stay Nourished</h4>
+                <p style="opacity: 0.8; margin-bottom: 15px; font-size: 0.95rem;">Join our mailing list for seasonal menu updates and exclusive events.</p>
+                <form class="newsletter-form" onsubmit="event.preventDefault();">
+                    <input type="email" placeholder="Your email address" required>
+                    <button type="submit" aria-label="Subscribe">→</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-copy">&copy; 2026 Juiced. Premium Health Food Restaurant. All rights reserved.</p>
+            <div class="footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Guidelines</a>
+            </div>
+        </div>
     </footer>
 
     <script>
@@ -649,7 +920,7 @@
             for (let i = 0; i < revealElements.length; i++) {
                 let windowHeight = window.innerHeight;
                 let elementTop = revealElements[i].getBoundingClientRect().top;
-                let elementVisible = 100;
+                let elementVisible = 120; // Trigger point
                 
                 if (elementTop < windowHeight - elementVisible) {
                     revealElements[i].classList.add('active');
@@ -658,8 +929,8 @@
         };
 
         window.addEventListener('scroll', revealOnScroll);
-        // Initial check
-        revealOnScroll();
+        // Initial check on load
+        setTimeout(revealOnScroll, 100);
 
         // Menu Carousel Logic
         const track = document.getElementById('track');
@@ -669,8 +940,15 @@
         let index = 0;
         
         const updateCarousel = () => {
-            const cardWidth = 370; // width (340) + gap (30)
-            const maxIndex = track.children.length - Math.floor(window.innerWidth / cardWidth);
+            // width (360) + gap (40)
+            const cardWidth = 400; 
+            
+            // Calculate max visible cards based on screen size
+            let visibleCards = 1;
+            if (window.innerWidth > 1200) visibleCards = 3;
+            else if (window.innerWidth > 800) visibleCards = 2;
+            
+            const maxIndex = track.children.length - visibleCards;
             
             if(index < 0) index = 0;
             if(index > maxIndex && maxIndex > 0) index = maxIndex;
